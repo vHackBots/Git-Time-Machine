@@ -45,7 +45,6 @@ function formatDate(dateString) {
     date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: true,
     })
   );
@@ -144,7 +143,6 @@ async function handleBranchClick(branchElement) {
     branchElement.classList.add("active");
     currentBranch = branchName;
 
-    // Get all commits for this branch
     const response = await fetch(
       `/api/branch-commits?branch=${encodeURIComponent(branchName)}`
     );
@@ -156,7 +154,6 @@ async function handleBranchClick(branchElement) {
     renderCommits(branchCommits);
     updateCommitSelectors(branchCommits);
 
-    // If it's a remote branch that needs to be checked out
     if (isRemote) {
       try {
         const checkoutResponse = await fetch(
