@@ -70,13 +70,13 @@ header {
   background: #fff;
   padding: 15px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  height: 60vh; 
+  height: 60vh;
   display: flex;
   flex-direction: column;
   z-index: 1000;
   transition: height 0.3s ease;
-  max-height: 95vh; 
-  resize: vertical; 
+  max-height: 95vh;
+  resize: vertical;
   overflow-y: auto;
 }
 
@@ -85,21 +85,56 @@ header {
 }
 
 .diff-content {
-  background: #f6f8fa;
+  background: #ffffff;
   padding: 15px;
   border-radius: 6px;
-  font-family: monospace;
+  font-family: "Fira Code", "Consolas", monospace;
   overflow-y: auto;
-  line-height: 1.4;
-  font-size: 13px;
+  line-height: 1.5;
+  font-size: 14px;
   height: calc(100% - 100px);
   contain: content;
-  will-change: transform; 
+  will-change: transform;
+  border: 1px solid #e1e4e8;
 }
 
 .diff-line {
   white-space: pre;
   contain: content;
+  padding: 2px 10px;
+  border-radius: 3px;
+  margin: 2px 0;
+}
+
+.diff-line.addition {
+  background-color: #e6ffec;
+  border-left: 4px solid #2ea043;
+}
+
+.diff-line.deletion {
+  background-color: #ffebe9;
+  border-left: 4px solid #cf222e;
+}
+
+.diff-line:not(.addition):not(.deletion) {
+  color: #57606a;
+  background-color: #f8f9fa;
+  border-left: 4px solid transparent;
+}
+
+/* Add a hover effect for better interaction */
+.diff-line:hover {
+  filter: brightness(97%);
+}
+
+/* Add line numbers styling */
+.diff-line::before {
+  content: attr(data-line-number);
+  display: inline-block;
+  width: 40px;
+  margin-right: 10px;
+  color: #6e7781;
+  user-select: none;
 }
 
 .compare-button {
