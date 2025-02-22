@@ -4,16 +4,18 @@ async function getRepoData() {
   const git = simpleGit();
   let isOffline = false;
 
+  // Get local data first
   const localData = await Promise.all([
     git.branch(),
     git.log(["--all"]),
     git.tags(),
+    git.raw(["remote"]), // Get list of remotes
   ]).catch((err) => {
     console.error("Failed to get local repo data:", err);
-    return [null, null, null];
+    return [null, null, null, ""];
   });
 
-  // Try to fetch remote data only after getting local data
+  // Try to fetch in background
   try {
     await git.fetch(["--all"]);
     isOffline = false;
@@ -22,43 +24,48 @@ async function getRepoData() {
     isOffline = true;
   }
 
-  const [localBranches, log, tags] = localData;
+  const [localBranches, log, tags, remotes] = localData;
 
   if (!localBranches || !log) {
     throw new Error("Failed to read local repository data");
   }
 
-  // Get local branches first
+  // Get local branches
   const localBranchList = localBranches.all.filter(
     (branch) => !branch.includes("remotes/")
   );
 
-  // Process remote branches and filter out those that exist locally
-  const remoteBranchList = isOffline
-    ? []
-    : localBranches.all
-        .filter((branch) => branch.startsWith("remotes/"))
-        .map((branch) => {
-          const shortName = branch.split("/").slice(2).join("/");
-          return {
-            name: branch.replace(/^remotes\//, ""),
-            fullName: branch,
-            remote: branch.split("/")[1],
-            shortName: shortName,
-          };
-        })
+  // Get all remote branches with better filtering
+  let remoteBranchList = [];
+  if (!isOffline && remotes) {
+    try {
+      // Get detailed remote branch info
+      const remoteBranches = await git.raw([
+        "branch",
+        "-r",
+        "--format=%(refname:short)",
+      ]);
+
+      remoteBranchList = remoteBranches
+        .split("\n")
         .filter(
           (branch) =>
-            // Filter conditions:
-            !branch.name.endsWith("/HEAD") && // Remove HEAD references
-            !localBranchList.some(
-              (localBranch) =>
-                // Remove if shortName matches any local branch
-                localBranch === branch.shortName ||
-                // Also check if the branch name matches without the remote prefix
-                localBranch === branch.name.replace(/^origin\//, "")
+            branch &&
+            !branch.endsWith("/HEAD") &&
+            !localBranchList.some((localBranch) =>
+              branch.endsWith("/" + localBranch)
             )
-        );
+        )
+        .map((branch) => ({
+          name: branch.trim(),
+          fullName: "remotes/" + branch.trim(),
+          remote: branch.split("/")[0],
+          shortName: branch.split("/").slice(1).join("/"),
+        }));
+    } catch (error) {
+      console.error("Failed to get remote branches:", error);
+    }
+  }
 
   // Process commits
   const commits = log.all.map((commit) => ({
