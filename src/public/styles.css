@@ -190,23 +190,27 @@ header h1 {
   background: var(--glass-bg);
   padding: 15px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  height: 50vh;
-  max-height: 50vh;
+  height: 60px;
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  transition: height 0.3s ease;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--glass-border);
-}
-
-#comparison-panel.active {
-  display: block;
+  transform-origin: bottom;
+  clip-path: inset(0 0 0 0);
 }
 
 #comparison-panel.collapsed {
   height: 60px;
+}
+
+#comparison-panel:not(.collapsed) {
+  height: 100vh;
+  bottom: 0;
+  top: 0;
+  clip-path: inset(0);
 }
 
 .diff-content {
@@ -217,10 +221,11 @@ header h1 {
   overflow-y: auto;
   line-height: 1.5;
   font-size: 14px;
-  height: calc(50vh - 140px);
+  height: calc(100vh - 140px);
   contain: content;
   will-change: transform;
   border: 1px solid var(--glass-border);
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .diff-line {
@@ -356,10 +361,40 @@ header h1 {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: 100%;
+  height: calc(100vh - 220px);
   overflow-y: auto;
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(10px);
+}
+
+.sidebar::-webkit-scrollbar,
+.commits-container::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.commits-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.commits-container::-webkit-scrollbar-thumb {
+  background-color: var(--glass-border);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.commits-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-blue);
+}
+
+.sidebar,
+.commits-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
 }
 
 .branch-list {
@@ -414,7 +449,8 @@ header h1 {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: 100%;
+  height: calc(100vh - 220px);
+  margin-bottom: 0;
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(10px);
   position: relative;
@@ -430,14 +466,9 @@ header h1 {
 .commits-container {
   margin-top: 10px;
   overflow-y: auto;
-  flex: 1;
-  padding-right: 10px;
-}
-
-.commits-container {
-  margin-top: 10px;
-  overflow-y: hidden;
   overflow-x: hidden;
+  max-height: calc(100vh - 280px);
+  padding-right: 16px;
 }
 
 .comparison-header {
@@ -580,11 +611,6 @@ h3 {
 
 #comparison-panel:not(.collapsed) .dropdown svg {
   transform: rotate(0deg);
-}
-
-#comparison-panel.collapsed {
-  height: 60px;
-  overflow: hidden;
 }
 
 .diff-file {

@@ -4,18 +4,16 @@ async function getRepoData() {
   const git = simpleGit();
   let isOffline = false;
 
-  // Get local data first
   const localData = await Promise.all([
     git.branch(),
     git.log(["--all"]),
     git.tags(),
-    git.raw(["remote"]), // Get list of remotes
+    git.raw(["remote"]),
   ]).catch((err) => {
     console.error("Failed to get local repo data:", err);
     return [null, null, null, ""];
   });
 
-  // Try to fetch in background
   try {
     await git.fetch(["--all"]);
     isOffline = false;
@@ -30,16 +28,13 @@ async function getRepoData() {
     throw new Error("Failed to read local repository data");
   }
 
-  // Get local branches
   const localBranchList = localBranches.all.filter(
     (branch) => !branch.includes("remotes/")
   );
 
-  // Get all remote branches with better filtering
   let remoteBranchList = [];
   if (!isOffline && remotes) {
     try {
-      // Get detailed remote branch info using for-each-ref to get actual branches only
       const remoteBranches = await git.raw([
         "for-each-ref",
         "refs/remotes",
@@ -52,7 +47,7 @@ async function getRepoData() {
           (branch) =>
             branch &&
             !branch.endsWith("/HEAD") &&
-            branch.split("/").length > 1 && // Ensure it has at least origin/branchname format
+            branch.split("/").length > 1 &&
             !localBranchList.some((localBranch) =>
               branch.endsWith("/" + localBranch)
             )
@@ -68,7 +63,6 @@ async function getRepoData() {
     }
   }
 
-  // Process commits
   const commits = log.all.map((commit) => ({
     ...commit,
     fullRefs: commit.refs
@@ -94,7 +88,6 @@ async function getRepoData() {
 async function getBranchCommits(branchName) {
   const git = simpleGit();
   try {
-    // First, find the branch's merge base with main/master
     let baseBranch = "main";
     try {
       await git.show(["main"]);
@@ -102,34 +95,28 @@ async function getBranchCommits(branchName) {
       baseBranch = "master";
     }
 
-    // Handle remote branch names by getting the proper ref
     let targetBranch = branchName;
     if (branchName.startsWith("remotes/")) {
-      // Skip bare "remotes/origin" and invalid remote refs
       if (branchName === "remotes/origin" || !branchName.includes("/")) {
         return [];
       }
-      // Use the full ref path for remote branches
       targetBranch = branchName.replace("remotes/", "refs/remotes/");
     }
 
-    // Get branch-specific commits using rev-list to find commit range
     const revList = await git.raw([
       "rev-list",
-      "--first-parent", // Follow only first parent for merge commits
-      targetBranch, // Use the processed branch name
-      "^" + baseBranch, // Exclude commits reachable from main/master
-      "--not", // Exclude commits from other branches
-      "--all", // Consider all refs
+      "--first-parent",
+      targetBranch,
+      "^" + baseBranch,
+      "--not",
+      "--all",
     ]);
 
-    // If no branch-specific commits found, get all commits for this branch
     if (!revList.trim()) {
       const log = await git.log(["--first-parent", targetBranch]);
       return log.all;
     }
 
-    // Get detailed commit info for branch-specific commits
     const commits = [];
     const commitHashes = revList.split("\n").filter((hash) => hash.trim());
 
@@ -183,7 +170,6 @@ async function compareCommits(commit1, commit2) {
 async function checkoutRemoteBranch(branchName) {
   const git = simpleGit();
   try {
-    // Create and checkout the new branch tracking the remote one
     await git.checkout([
       "-b",
       branchName.split("/").slice(2).join("/"),

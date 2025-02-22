@@ -4,7 +4,7 @@ const {
   getRepoData,
   compareCommits,
   checkoutRemoteBranch,
-  getBranchCommits, // Add this import
+  getBranchCommits,
 } = require("./git");
 
 const app = express();
@@ -37,7 +37,7 @@ app.post("/api/checkout-remote", async (req, res) => {
   try {
     const { branchName } = req.query;
     if (!branchName) {
-      return res.status(400).json({ error: "Missing branch name" });
+      return res.status(400).json({ Rerror: "Missing branch name" });
     }
     const success = await checkoutRemoteBranch(branchName);
     if (success) {
