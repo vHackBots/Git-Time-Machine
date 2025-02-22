@@ -124,6 +124,7 @@ async function handleCompare() {
         const diff = await response.text();
         document.getElementById('diff-output').innerHTML = formatDiff(diff);
         document.getElementById('comparison-panel').classList.add('active');
+        document.getElementById('comparison-panel').classList.remove('collapsed');
     } catch (error) {
         console.error('Failed to compare commits:', error);
     }
@@ -181,5 +182,22 @@ async function init() {
         console.error('Failed to load repository data:', error);
     }
 }
+
+const comparisonPanel = document.getElementById('comparison-panel');
+const comparisonHeader = document.querySelector('.comparison-header');
+
+// Add the dropdown button to the header
+const dropdownButton = document.createElement('button');
+dropdownButton.className = 'dropdown-button';
+dropdownButton.setAttribute('aria-label', 'Toggle comparison panel');
+comparisonHeader.appendChild(dropdownButton);
+
+// Update click handler to only work on the button
+dropdownButton.addEventListener('click', () => {
+    comparisonPanel.classList.toggle('collapsed');
+});
+
+// Remove the old click handler from the header
+comparisonHeader.style.cursor = 'default';
 
 init();
