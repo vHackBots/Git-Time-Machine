@@ -1,4 +1,4 @@
-# GitHub Time Machine
+# Git Time Machine
 
 **A powerful tool to visualize, analyze, and manage the evolution of your GitHub repositories.**
 
