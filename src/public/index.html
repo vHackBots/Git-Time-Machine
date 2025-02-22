@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Time Machine</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Git Time Machine</h1>
+            <div id="repo-info"></div>
+        </header>
+        
+        <div class="layout">
+            <aside class="sidebar">
+                <h2>Branches</h2>
+                <div id="branch-list" class="branch-list"></div>
+            </aside>
+            
+            <main>
+                <section id="timeline" class="timeline-section">
+                    <h2>Commits</h2>
+                    <div class="commits-container"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <div id="comparison-panel">
+        <div class="comparison-header">
+            <h3>Compare Commits</h3>
+            <div class="commit-selectors">
+                <div class="select-group">
+                    <label>Base Commit:</label>
+                    <select id="base-commit-select" class="commit-select"></select>
+                </div>
+                <div class="select-group">
+                    <label>Compare Commit:</label>
+                    <select id="compare-commit-select" class="commit-select"></select>
+                </div>
+                <button id="compare-button" class="compare-button">Compare</button>
+                <button id="clear-button" class="clear-button">Clear</button>
+            </div>
+        </div>
+        <div id="diff-output" class="diff-content"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
