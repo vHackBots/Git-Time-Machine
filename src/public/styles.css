@@ -132,7 +132,6 @@ header {
   border-left: 4px solid transparent;
 }
 
-/* Add a hover effect for better interaction */
 .diff-line:hover {
   filter: brightness(97%);
 }
