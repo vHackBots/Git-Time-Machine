@@ -113,11 +113,36 @@ header {
 }
 
 .diff-line {
+  display: flex;
   font-family: monospace;
   white-space: pre;
-  padding: 0 16px;
-  line-height: 1.5;
   font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  position: relative;
+}
+
+.line-numbers {
+  user-select: none;
+  width: 80px;
+  min-width: 80px;
+  padding: 0 8px;
+  color: #6e7781;
+  background: #f6f8fa;
+  border-right: 1px solid #e1e4e8;
+  text-align: right;
+  display: flex;
+}
+
+.line-number {
+  width: 50%;
+  padding: 0 4px;
+  color: #6e7781;
+}
+
+.diff-line code {
+  padding: 0 16px;
+  flex: 1;
 }
 
 .diff-line::before {
@@ -428,9 +453,17 @@ h3 {
   padding: 10px 16px;
   display: flex;
   align-items: center;
+  gap: 10px;
   cursor: pointer;
   user-select: none;
   border-bottom: 1px solid #e1e4e8;
+}
+
+.file-status {
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 14px;
+  min-width: 24px;
 }
 
 .diff-file-header:hover {
@@ -472,6 +505,40 @@ h3 {
 .diff-file-content {
   background: #ffffff;
   overflow-x: auto;
+}
+
+.diff-hunk-header {
+  color: #2d333b;
+  background: #e7ecf0;
+  padding: 8px 16px;
+  font-family: monospace;
+  font-size: 12px;
+  border-bottom: 1px solid #d0d7de;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diff-hunk-header::before {
+  content: "•";
+  color: #6e7781;
+}
+
+.diff-line.addition {
+  background: #e6ffec;
+}
+
+.diff-line.deletion {
+  background: #ffebe9;
+}
+
+.diff-line.addition code {
+  color: #1a7f37;
+}
+
+.diff-line.deletion code {
+  color: #cf222e;
 }
 
 .fullscreen-loader,

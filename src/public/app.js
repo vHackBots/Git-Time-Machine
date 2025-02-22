@@ -56,26 +56,35 @@ function renderTimeline(commits) {
     .map(
       (commit) => `
             <div class="commit" data-hash="${sanitizeHTML(commit.hash)}">
-                <div class="commit-hash">${sanitizeHTML(
-                  commit.hash.slice(0, 7)
-                )}</div>
-                <div class="commit-message">${sanitizeHTML(
-                  commit.message
-                )}</div>
-                <div class="commit-author">${sanitizeHTML(
-                  commit.author_name
-                )}</div>
-                <div class="commit-date">${sanitizeHTML(
-                  formatDate(commit.date)
-                )}</div>
+                <div class="commit-hash">${
+        sanitizeHTML(
+          commit.hash.slice(0, 7),
+        )
+      }</div>
+                <div class="commit-message">${
+        sanitizeHTML(
+          commit.message,
+        )
+      }</div>
+                <div class="commit-author">${
+        sanitizeHTML(
+          commit.author_name,
+        )
+      }</div>
+                <div class="commit-date">${
+        sanitizeHTML(
+          formatDate(commit.date),
+        )
+      }</div>
             </div>
-        `
+        `,
     )
     .join("");
 
   timeline.querySelectorAll(".commit").forEach((commitElement) => {
-    commitElement.addEventListener("click", () =>
-      handleCommitClick(commitElement)
+    commitElement.addEventListener(
+      "click",
+      () => handleCommitClick(commitElement),
     );
   });
 }
@@ -87,12 +96,12 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
     .map(
       (branch) => `
         <div class="branch-item ${
-          branch === currentBranchName ? "active" : ""
-        }" 
+        branch === currentBranchName ? "active" : ""
+      }" 
              data-branch="${sanitizeHTML(branch)}">
             ${sanitizeHTML(branch)}
         </div>
-    `
+    `,
     )
     .join("");
 
@@ -100,18 +109,20 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
     ? `
       <div class="branch-section">
         <h3>Remote Branches</h3>
-        ${remoteBranches
-          .map(
-            (branch) => `
+        ${
+      remoteBranches
+        .map(
+          (branch) => `
               <div class="branch-item remote" 
                    data-branch="${branch.fullName}"
                    data-remote="${branch.remote}"
                    title="${branch.fullName}">
                 ${branch.remote}/${branch.shortName}
               </div>
-            `
-          )
-          .join("")}
+            `,
+        )
+        .join("")
+    }
       </div>
     `
     : "";
@@ -125,8 +136,9 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
   `;
 
   branchList.querySelectorAll(".branch-item").forEach((branchElement) => {
-    branchElement.addEventListener("click", () =>
-      handleBranchClick(branchElement)
+    branchElement.addEventListener(
+      "click",
+      () => handleBranchClick(branchElement),
     );
   });
 }
@@ -144,7 +156,7 @@ async function handleBranchClick(branchElement) {
     currentBranch = branchName;
 
     const response = await fetch(
-      `/api/branch-commits?branch=${encodeURIComponent(branchName)}`
+      `/api/branch-commits?branch=${encodeURIComponent(branchName)}`,
     );
     if (!response.ok) {
       throw new Error("Failed to fetch branch commits");
@@ -158,7 +170,7 @@ async function handleBranchClick(branchElement) {
       try {
         const checkoutResponse = await fetch(
           `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
-          { method: "POST" }
+          { method: "POST" },
         );
 
         if (!checkoutResponse.ok) {
@@ -191,7 +203,7 @@ function renderCommits(commits) {
                 <div class="commit-message">${commit.message}</div>
                 <div class="commit-date">${formatDate(commit.date)}</div>
             </div>
-        `
+        `,
     )
     .join("");
 }
@@ -204,11 +216,13 @@ function updateCommitSelectors(commits) {
     .map(
       (commit) => `
             <option value="${sanitizeHTML(commit.hash)}">
-                ${sanitizeHTML(commit.hash.slice(0, 7))} - ${sanitizeHTML(
-        commit.message
-      )}
+                ${sanitizeHTML(commit.hash.slice(0, 7))} - ${
+        sanitizeHTML(
+          commit.message,
+        )
+      }
             </option>
-        `
+        `,
     )
     .join("");
 
@@ -226,15 +240,17 @@ function handleCommitClick(commitElement) {
   if (!selectedCommits.first) {
     selectedCommits.first = hash;
     commitElement.classList.add("selected-first");
-    document.getElementById("first-commit").textContent = `First: ${hash.slice(
-      0,
-      7
-    )}`;
+    document.getElementById("first-commit").textContent = `First: ${
+      hash.slice(
+        0,
+        7,
+      )
+    }`;
   } else if (!selectedCommits.second) {
     selectedCommits.second = hash;
     commitElement.classList.add("selected-second");
     document.getElementById(
-      "second-commit"
+      "second-commit",
     ).textContent = `Second: ${hash.slice(0, 7)}`;
     document.getElementById("compare-button").disabled = false;
   }
@@ -257,7 +273,7 @@ async function handleCompare() {
 
     try {
       const response = await fetch(
-        `/api/compare?from=${baseHash}&to=${compareHash}`
+        `/api/compare?from=${baseHash}&to=${compareHash}`,
       );
       const diff = await response.text();
       document.getElementById("diff-output").innerHTML = formatDiff(diff);
@@ -270,38 +286,133 @@ async function handleCompare() {
   }
 }
 
+function getFileStatus(diff) {
+  if (diff.includes('new file mode')) return 'A';
+  if (diff.includes('deleted file mode')) return 'D';
+  if (diff.includes('rename from')) return 'R';
+  return 'M';
+}
+
+function getStatusColor(status) {
+  const colors = {
+    'A': '#28a745',
+    'D': '#dc3545',
+    'M': '#0366d6',
+    'R': '#6f42c1'
+  };
+  return colors[status] || '#666';
+}
+
+function formatHunkHeader(line) {
+  const match = line.match(/@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@(.*)/);
+  if (!match) return line;
+
+  const [, oldStart, oldCount = 1, newStart, newCount = 1, context] = match;
+  return `
+    <div class="diff-hunk-header">
+      <span class="hunk-range">
+        Changes at lines ${oldStart}-${parseInt(oldStart) + parseInt(oldCount) - 1}
+        → ${newStart}-${parseInt(newStart) + parseInt(newCount) - 1}
+      </span>
+      ${context ? `<span class="hunk-context">${context.trim()}</span>` : ''}
+    </div>
+  `;
+}
+
+function formatDiffContent(content) {
+  const lines = content.split('\n');
+  let currentHunk = null;
+  let formattedLines = [];
+  let oldLineNo = 0;
+  let newLineNo = 0;
+
+  lines.forEach(line => {
+    if (line.startsWith('index ') || line.startsWith('new file mode') || 
+        line.startsWith('deleted file mode') || line.startsWith('old mode')) {
+      return;
+    }
+
+    if (line.startsWith('@@')) {
+      currentHunk = line.match(/@@ -(\d+),?\d* \+(\d+),?\d* @@/);
+      if (currentHunk) {
+        oldLineNo = parseInt(currentHunk[1]) - 1;
+        newLineNo = parseInt(currentHunk[2]) - 1;
+        formattedLines.push(formatHunkHeader(line));
+      }
+      return;
+    }
+
+    if (line.startsWith('---') || line.startsWith('+++')) {
+      return;
+    }
+
+    let className = 'diff-line';
+    let lineNumbers = '';
+
+    if (line.startsWith('+')) {
+      newLineNo++;
+      className += ' addition';
+      lineNumbers = `<span class="line-number old"></span><span class="line-number new">${newLineNo}</span>`;
+    } else if (line.startsWith('-')) {
+      oldLineNo++;
+      className += ' deletion';
+      lineNumbers = `<span class="line-number old">${oldLineNo}</span><span class="line-number new"></span>`;
+    } else {
+      oldLineNo++;
+      newLineNo++;
+      lineNumbers = `<span class="line-number old">${oldLineNo}</span><span class="line-number new">${newLineNo}</span>`;
+    }
+
+    formattedLines.push(`
+      <div class="${className}">
+        <div class="line-numbers">${lineNumbers}</div>
+        <code>${sanitizeHTML(line)}</code>
+      </div>
+    `);
+  });
+
+  return formattedLines.join('');
+}
+
 function formatDiff(diff) {
   const files = parseDiffToFiles(diff);
   return files
-    .map(
-      (file) => `
+    .map(file => {
+      const status = getFileStatus(file.content);
+      return `
     <div class="diff-file collapsed">
       <div class="diff-file-header" onclick="toggleDiffContent(this)">
+        <span class="file-status" style="color: ${getStatusColor(status)}">[${status}]</span>
         <span class="diff-file-name">${file.name}</span>
-        <div class="diff-stats">
-          <span class="diff-added">+${file.additions}</span>
-          <span class="diff-removed">-${file.deletions}</span>
-        </div>
+        ${!file.isBinary ? `
+          <div class="diff-stats">
+            <span class="diff-added">+${file.additions}</span>
+            <span class="diff-removed">-${file.deletions}</span>
+          </div>
+        ` : '<span class="diff-binary">Binary file</span>'}
         <span class="diff-collapse-icon">▼</span>
       </div>
       <div class="diff-file-content">
-        ${formatDiffContent(file.content)}
+        ${file.isBinary ? 
+          '<div class="binary-file-message">Binary file not shown</div>' : 
+          formatDiffContent(file.content)}
       </div>
-    </div>
-  `
-    )
-    .join("");
+    </div>`;
+    })
+    .join('');
 }
 
 function parseDiffToFiles(diff) {
   const files = [];
   let currentFile = null;
   let content = [];
+  let isBinary = false;
 
   diff.split("\n").forEach((line) => {
     if (line.startsWith("diff --git")) {
       if (currentFile) {
-        currentFile.content = content.join("\n");
+        currentFile.content = isBinary ? "Binary file" : content.join("\n");
+        currentFile.isBinary = isBinary;
         files.push(currentFile);
       }
       const fileName = line.split(" b/")[1];
@@ -310,41 +421,30 @@ function parseDiffToFiles(diff) {
         content: "",
         additions: 0,
         deletions: 0,
+        isBinary: false
       };
       content = [];
-    } else if (currentFile) {
+      isBinary = false;
+    } else if (line.includes("Binary files") || line.includes("Files") && line.includes("differ")) {
+      isBinary = true;
+    } else if (currentFile && !isBinary) {
       content.push(line);
-      if (line.startsWith("+") && !line.startsWith("+++"))
+      if (line.startsWith("+") && !line.startsWith("+++")) {
         currentFile.additions++;
-      if (line.startsWith("-") && !line.startsWith("---"))
+      }
+      if (line.startsWith("-") && !line.startsWith("---")) {
         currentFile.deletions++;
+      }
     }
   });
 
   if (currentFile) {
-    currentFile.content = content.join("\n");
+    currentFile.content = isBinary ? "Binary file" : content.join("\n");
+    currentFile.isBinary = isBinary;
     files.push(currentFile);
   }
 
   return files;
-}
-
-function formatDiffContent(content) {
-  let lineNumber = 1;
-  return content
-    .split("\n")
-    .map((line) => {
-      let className = "diff-line";
-      if (line.startsWith("+")) {
-        className += " addition";
-      } else if (line.startsWith("-")) {
-        className += " deletion";
-      }
-      return `<div class="${className}" data-line-number="${lineNumber++}">${sanitizeHTML(
-        line
-      )}</div>`;
-    })
-    .join("");
 }
 
 function toggleDiffContent(header) {
@@ -382,8 +482,8 @@ async function init() {
     document.getElementById("repo-info").innerHTML = `
       <div>Current Branch: ${data.current}</div>
       <div>Total Branches: ${
-        data.branches.length + (data.remoteBranches?.length || 0)
-      }</div>
+      data.branches.length + (data.remoteBranches?.length || 0)
+    }</div>
     `;
 
     document
