@@ -405,13 +405,13 @@ async function init() {
 const comparisonPanel = document.getElementById("comparison-panel");
 const comparisonHeader = document.querySelector(".comparison-header");
 
-const dropdownButton = document.createElement("button");
-dropdownButton.className = "dropdown-button";
-dropdownButton.setAttribute("aria-label", "Toggle comparison panel");
-comparisonHeader.appendChild(dropdownButton);
+document.getElementById("panel-toggle").addEventListener("change", (e) => {
+  const panel = document.getElementById("comparison-panel");
+  panel.classList.toggle("collapsed");
+});
 
-dropdownButton.addEventListener("click", () => {
-  comparisonPanel.classList.toggle("collapsed");
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("comparison-panel").classList.add("collapsed");
 });
 
 comparisonHeader.style.cursor = "default";
