@@ -84,7 +84,6 @@ function renderTimeline(commits) {
 function renderBranches(branches, currentBranchName, remoteBranches) {
   const branchList = document.getElementById("branch-list");
 
-  // Local branches section
   const localBranchesHtml = branches
     .map(
       (branch) => `
@@ -98,7 +97,6 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
     )
     .join("");
 
-  // Remote branches section with proper remote names
   const remoteBranchesHtml = remoteBranches?.length
     ? `
       <div class="branch-section">
@@ -156,7 +154,6 @@ async function handleBranchClick(branchElement) {
         const data = await response.json();
         allCommits = data.commits;
 
-        // Re-render the UI with updated data
         renderBranches(data.branches, data.current, data.remoteBranches);
         renderCommits(data.commits);
         updateCommitSelectors(data.commits);

@@ -437,13 +437,11 @@ h3 {
   overflow-x: auto;
 }
 
-/* Remove old loader styles */
 .fullscreen-loader,
 .terminal-loader {
   display: none;
 }
 
-/* Add new loader styles */
 #loader-container {
   position: fixed;
   top: 0;
@@ -457,7 +455,6 @@ h3 {
   z-index: 9999;
 }
 
-/* From Uiverse.io by mobinkakei */
 .loader {
   --path: #2f3545;
   --dot: #5628ee;
