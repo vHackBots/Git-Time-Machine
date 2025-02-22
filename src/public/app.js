@@ -234,7 +234,6 @@ async function handleCompare() {
     const diff = await response.text();
     document.getElementById("diff-output").innerHTML = formatDiff(diff);
     document.getElementById("comparison-panel").classList.add("active");
-    document.getElementById("comparison-panel").classList.remove("collapsed");
   } catch (error) {
     console.error("Failed to compare commits:", error);
   }
@@ -243,7 +242,7 @@ async function handleCompare() {
 function formatDiff(diff) {
   const files = parseDiffToFiles(diff);
   return files.map(file => `
-    <div class="diff-file">
+    <div class="diff-file collapsed">
       <div class="diff-file-header" onclick="toggleDiffContent(this)">
         <span class="diff-file-name">${file.name}</span>
         <div class="diff-stats">
@@ -354,6 +353,8 @@ async function init() {
     document
       .getElementById("clear-button")
       .addEventListener("click", clearComparison);
+      
+    document.getElementById("comparison-panel").classList.add("collapsed");
   } catch (error) {
     console.error("Failed to load repository data:", error);
   }
