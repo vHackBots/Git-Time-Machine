@@ -12,6 +12,12 @@ async function fetchRepoData() {
   return data;
 }
 
+function sanitizeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function formatDate(dateString) {
   const date = new Date(dateString);
   return (
@@ -35,11 +41,11 @@ function renderTimeline(commits) {
   timeline.innerHTML = commits
     .map(
       (commit) => `
-            <div class="commit" data-hash="${commit.hash}">
-                <div class="commit-hash">${commit.hash.slice(0, 7)}</div>
-                <div class="commit-message">${commit.message}</div>
-                <div class="commit-author">${commit.author_name}</div>
-                <div class="commit-date">${formatDate(commit.date)}</div>
+            <div class="commit" data-hash="${sanitizeHTML(commit.hash)}">
+                <div class="commit-hash">${sanitizeHTML(commit.hash.slice(0, 7))}</div>
+                <div class="commit-message">${sanitizeHTML(commit.message)}</div>
+                <div class="commit-author">${sanitizeHTML(commit.author_name)}</div>
+                <div class="commit-date">${sanitizeHTML(formatDate(commit.date))}</div>
             </div>
         `
     )
@@ -62,8 +68,8 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
         <div class="branch-item ${
           branch === currentBranchName ? "active" : ""
         }" 
-             data-branch="${branch}">
-            ${branch}
+             data-branch="${sanitizeHTML(branch)}">
+            ${sanitizeHTML(branch)}
         </div>
     `
     )
@@ -173,8 +179,8 @@ function updateCommitSelectors(commits) {
   const options = commits
     .map(
       (commit) => `
-            <option value="${commit.hash}">
-                ${commit.hash.slice(0, 7)} - ${commit.message}
+            <option value="${sanitizeHTML(commit.hash)}">
+                ${sanitizeHTML(commit.hash.slice(0, 7))} - ${sanitizeHTML(commit.message)}
             </option>
         `
     )
@@ -235,19 +241,77 @@ async function handleCompare() {
 }
 
 function formatDiff(diff) {
-  let lineNumber = 1;
-  return diff
-    .split("\n")
-    .map((line) => {
-      let className = "diff-line";
-      if (line.startsWith("+")) {
-        className += " addition";
-      } else if (line.startsWith("-")) {
-        className += " deletion";
+  const files = parseDiffToFiles(diff);
+  return files.map(file => `
+    <div class="diff-file">
+      <div class="diff-file-header" onclick="toggleDiffContent(this)">
+        <span class="diff-file-name">${file.name}</span>
+        <div class="diff-stats">
+          <span class="diff-added">+${file.additions}</span>
+          <span class="diff-removed">-${file.deletions}</span>
+        </div>
+        <span class="diff-collapse-icon">▼</span>
+      </div>
+      <div class="diff-file-content">
+        ${formatDiffContent(file.content)}
+      </div>
+    </div>
+  `).join('');
+}
+
+function parseDiffToFiles(diff) {
+  const files = [];
+  let currentFile = null;
+  let content = [];
+  
+  diff.split('\n').forEach(line => {
+    if (line.startsWith('diff --git')) {
+      if (currentFile) {
+        currentFile.content = content.join('\n');
+        files.push(currentFile);
       }
-      return `<div class="${className}" data-line-number="${lineNumber++}">${line}</div>`;
+      const fileName = line.split(' b/')[1];
+      currentFile = {
+        name: fileName,
+        content: '',
+        additions: 0,
+        deletions: 0
+      };
+      content = [];
+    } else if (currentFile) {
+      content.push(line);
+      if (line.startsWith('+') && !line.startsWith('+++')) currentFile.additions++;
+      if (line.startsWith('-') && !line.startsWith('---')) currentFile.deletions++;
+    }
+  });
+  
+  if (currentFile) {
+    currentFile.content = content.join('\n');
+    files.push(currentFile);
+  }
+  
+  return files;
+}
+
+function formatDiffContent(content) {
+  let lineNumber = 1;
+  return content
+    .split('\n')
+    .map(line => {
+      let className = 'diff-line';
+      if (line.startsWith('+')) {
+        className += ' addition';
+      } else if (line.startsWith('-')) {
+        className += ' deletion';
+      }
+      return `<div class="${className}" data-line-number="${lineNumber++}">${sanitizeHTML(line)}</div>`;
     })
-    .join("");
+    .join('');
+}
+
+function toggleDiffContent(header) {
+  const fileElement = header.parentElement;
+  fileElement.classList.toggle('collapsed');
 }
 
 function clearSelection() {
