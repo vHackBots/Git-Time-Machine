@@ -3,7 +3,6 @@ const simpleGit = require("simple-git");
 async function getRepoData() {
   const git = simpleGit();
 
-  // First fetch from all remotes to ensure we have latest data
   try {
     await git.fetch(["--all"]);
   } catch (error) {
@@ -14,15 +13,13 @@ async function getRepoData() {
     git.log(["--all"]),
     git.branch(["-a"]),
     git.tags(),
-    git.getRemotes(true), // true to get additional details
+    git.getRemotes(true),
   ]);
 
-  // Get local branches
   const localBranches = branches.all.filter(
     (branch) => !branch.includes("remotes/")
   );
 
-  // Get remote branches but exclude those that exist locally
   const remoteBranches = branches.all
     .filter((branch) => branch.startsWith("remotes/"))
     .map((branch) => ({
@@ -34,17 +31,15 @@ async function getRepoData() {
     .filter(
       (branch) =>
         !branch.name.endsWith("/HEAD") &&
-        !localBranches.includes(branch.shortName) // Filter out remotes that exist locally
+        !localBranches.includes(branch.shortName)
     );
 
-  // Combine commit data with reference information
   const commits = log.all.map((commit) => ({
     ...commit,
     fullRefs: commit.refs
       .split(",")
       .map((ref) => ref.trim())
       .filter(Boolean),
-    // Include remote references in the refs check
     refs: commit.refs
       .split(",")
       .map((ref) => ref.trim())
@@ -65,7 +60,6 @@ async function getRepoData() {
 async function compareCommits(commit1, commit2) {
   const git = simpleGit();
 
-  // Handle remote references properly
   const resolveRef = async (ref) => {
     if (ref.includes("origin/")) {
       try {
@@ -90,7 +84,6 @@ async function compareCommits(commit1, commit2) {
 async function checkoutRemoteBranch(branchName) {
   const git = simpleGit();
   try {
-    // Create and checkout the new branch tracking the remote one
     await git.checkout([
       "-b",
       branchName.split("/").slice(2).join("/"),

@@ -1,8 +1,53 @@
+:root {
+  --bg-color: #f5f5f5;
+  --text-color: #24292e;
+  --card-bg: #fff;
+  --border-color: #e1e4e8;
+  --hover-bg: #f6f8fa;
+  --link-color: #0366d6;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --secondary-text: #666;
+  --diff-add-bg: #e6ffec;
+  --diff-del-bg: #ffebe9;
+  --diff-neutral-bg: #f8f9fa;
+  --diff-add-border: #2ea043;
+  --diff-del-border: #cf222e;
+  --button-primary-bg: #2ea44f;
+  --button-primary-hover: #2c974b;
+  --button-danger-bg: #dc3545;
+  --selected-first-bg: #f1f8ff;
+  --selected-second-bg: #f1fff8;
+  --branch-hover-bg: #f1f8ff;
+}
+
+[data-theme="dark"] {
+  --bg-color: #0d1117;
+  --text-color: #c9d1d9;
+  --card-bg: #161b22;
+  --border-color: #30363d;
+  --hover-bg: #1f2428;
+  --link-color: #58a6ff;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --secondary-text: #8b949e;
+  --diff-add-bg: #1b4721;
+  --diff-del-bg: #4e1c1c;
+  --diff-neutral-bg: #1c2128;
+  --diff-add-border: #238636;
+  --diff-del-border: #f85149;
+  --button-primary-bg: #238636;
+  --button-primary-hover: #2ea043;
+  --button-danger-bg: #da3633;
+  --selected-first-bg: #1d2d3e;
+  --selected-second-bg: #1d3d2e;
+  --branch-hover-bg: #1d2d3e;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin: 0;
   padding: 20px;
-  background: #f5f5f5;
+  background: var(--bg-color);
+  color: var(--text-color);
   padding-bottom: calc(40vh + 40px);
 }
 
@@ -12,19 +57,23 @@ body {
 }
 
 header {
-  background: #fff;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .commit {
   padding: 12px;
   margin: 8px 0;
   border-radius: 6px;
-  border: 1px solid #e1e4e8;
-  background: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
   display: grid;
   grid-template-columns: 80px 1fr 150px;
   gap: 12px;
@@ -34,23 +83,24 @@ header {
 }
 
 .commit:hover {
-  background: #f6f8fa;
+  background: var(--hover-bg);
   transform: translateX(2px);
+  border-color: var(--link-color);
 }
 
 .commit.selected-first {
-  border-left-color: #0366d6;
-  background: #f1f8ff;
+  border-left-color: var(--link-color);
+  background: var(--selected-first-bg);
 }
 
 .commit.selected-second {
   border-left-color: #28a745;
-  background: #f1fff8;
+  background: var(--selected-second-bg);
 }
 
 .commit-hash {
   font-family: monospace;
-  color: #0366d6;
+  color: var(--link-color);
 }
 
 .commit-message {
@@ -59,11 +109,11 @@ header {
 
 .commit-author,
 .commit-date {
-  color: #666;
+  color: var(--secondary-text);
 }
 
 .commit-date {
-  color: #666;
+  color: var(--secondary-text);
   white-space: nowrap;
   font-family: monospace;
   min-width: 200px;
@@ -74,9 +124,9 @@ header {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--card-bg);
   padding: 15px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 10px var(--shadow-color);
   height: 60vh;
   display: flex;
   flex-direction: column;
@@ -92,7 +142,7 @@ header {
 }
 
 .diff-content {
-  background: #ffffff;
+  background: var(--card-bg);
   padding: 15px;
   border-radius: 6px;
   font-family: "Fira Code", "Consolas", monospace;
@@ -102,7 +152,7 @@ header {
   height: calc(100% - 100px);
   contain: content;
   will-change: transform;
-  border: 1px solid #e1e4e8;
+  border: 1px solid var(--border-color);
 }
 
 .diff-line {
@@ -124,27 +174,29 @@ header {
 }
 
 .diff-line.addition {
-  background-color: #e6ffec;
-  border-left: 4px solid #2ea043;
+  background-color: var(--diff-add-bg);
+  border-left-color: var(--diff-add-border);
 }
 
 .diff-line.deletion {
-  background-color: #ffebe9;
-  border-left: 4px solid #cf222e;
+  background-color: var(--diff-del-bg);
+  border-left-color: var(--diff-del-border);
 }
 
 .diff-line:not(.addition):not(.deletion) {
   color: #57606a;
-  background-color: #f8f9fa;
+  background-color: var(--diff-neutral-bg);
   border-left: 4px solid transparent;
 }
 
 .diff-line:hover {
   filter: brightness(97%);
+  border-left-width: 6px;
+  transition: border-left-width 0.2s ease;
 }
 
 .compare-button {
-  background: #2ea44f;
+  background: var(--button-primary-bg);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -153,17 +205,24 @@ header {
 }
 
 .compare-button:hover {
-  background: #2c974b;
+  background: var(--button-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .clear-button {
-  background: #dc3545;
+  background: var(--button-danger-bg);
   color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   margin-left: 10px;
+}
+
+.clear-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .layout {
@@ -174,10 +233,10 @@ header {
 }
 
 .sidebar {
-  background: #fff;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
   height: fit-content;
 }
 
@@ -194,7 +253,8 @@ header {
 }
 
 .branch-item:hover {
-  background: #f1f8ff;
+  background: var(--branch-hover-bg);
+  transform: translateX(2px);
 }
 
 .branch-item.active {
@@ -208,14 +268,14 @@ header {
 
 .branch-section h3 {
   font-size: 0.9em;
-  color: #666;
+  color: var(--secondary-text);
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .branch-item.remote {
-  color: #6a737d;
+  color: var(--secondary-text);
   padding-left: 20px;
   position: relative;
 }
@@ -224,14 +284,14 @@ header {
   content: "⇋";
   position: absolute;
   left: 6px;
-  color: #6a737d;
+  color: var(--secondary-text);
 }
 
 .timeline-section {
-  background: #fff;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
   max-height: calc(100vh - 250px);
   overflow-y: auto;
 }
@@ -274,12 +334,12 @@ header {
 h2,
 h3 {
   margin: 0;
-  color: #24292e;
+  color: var(--text-color);
 }
 
 .dropdown-button {
-  background: #f0f0f0;
-  border: 1px solid #ddd;
+  background: var(--hover-bg);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   cursor: pointer;
   padding: 9px 12px;
@@ -292,24 +352,24 @@ h3 {
 }
 
 .dropdown-button:hover {
-  background: #e0e0e0;
+  background: var(--card-bg);
   transform: translateY(-1px);
 }
 
 .dropdown-button:active {
-  background: #d0d0d0;
+  background: var(--hover-bg);
 }
 
 .dropdown-button::before {
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .dropdown-button::after {
   content: "▼";
   display: inline-block;
   font-size: 12px;
-  color: #666;
+  color: var(--secondary-text);
   transition: transform 0.3s ease;
 }
 
@@ -362,6 +422,16 @@ h3 {
   #comparison-panel.collapsed {
     height: 70vh;
   }
+
+  header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .theme-toggle {
+    align-self: flex-end;
+    margin-top: -30px;
+  }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -387,28 +457,29 @@ h3 {
 }
 
 .diff-file-header {
-  background: #f6f8fa;
+  background: var(--hover-bg);
   padding: 10px 16px;
   display: flex;
   align-items: center;
   cursor: pointer;
   user-select: none;
-  border-bottom: 1px solid #e1e4e8;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .diff-file-header:hover {
-  background: #f0f2f4;
+  background: var(--hover-bg);
+  border-color: var(--link-color);
 }
 
 .diff-file-name {
   flex-grow: 1;
   font-family: monospace;
   font-weight: 600;
-  color: #24292e;
+  color: var(--text-color);
 }
 
-.diff-stats {
-  margin-right: 16px;
+.diff-file-name:hover {
+  color: var(--text-color);
 }
 
 .diff-added {
@@ -435,4 +506,36 @@ h3 {
 .diff-file-content {
   background: #ffffff;
   overflow-x: auto;
+}
+
+#repo-info {
+  flex-grow: 1;
+  margin-top: 10px;
+}
+
+.theme-toggle {
+  position: static;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  height: fit-content;
+}
+
+.theme-toggle:hover {
+  background: var(--hover-bg);
+  transform: translateY(-1px);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
