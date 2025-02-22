@@ -1,5 +1,13 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('/src/public/fonts/InterTight-VariableFont_wght.ttf') format('ttf'),
+       url('/src/public/fonts/InterTight-Italic-VariableFont_wght.ttf') format('ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin: 0;
   padding: 20px;
   background: #f5f5f5;
@@ -144,26 +152,57 @@ header {
 }
 
 .compare-button {
-  background: #2ea44f;
-  color: white;
+  padding: 1.3em 2em;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #31c423;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease 0s;
   cursor: pointer;
+  outline: none;
 }
 
 .compare-button:hover {
-  background: #2c974b;
+  background-color: rgb(24, 169, 48);
+  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.compare-button:active {
+  transform: translateY(-1px);
 }
 
 .clear-button {
-  background: #dc3545;
-  color: white;
+  padding: 1.3em 2em;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #dc3545;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease 0s;
   cursor: pointer;
-  margin-left: 10px;
+  outline: none;
+}
+
+.clear-button:hover {
+  background-color: #ad2936;
+  box-shadow: 0px 15px 20px rgba(229, 46, 46, 0.4);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.clear-button:active {
+  transform: translateY(-1px);
 }
 
 .layout {
@@ -277,46 +316,6 @@ h3 {
   color: #24292e;
 }
 
-.dropdown-button {
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  padding: 9px 12px;
-  margin-left: 10px;
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-
-.dropdown-button:hover {
-  background: #e0e0e0;
-  transform: translateY(-1px);
-}
-
-.dropdown-button:active {
-  background: #d0d0d0;
-}
-
-.dropdown-button::before {
-  font-size: 14px;
-  color: #333;
-}
-
-.dropdown-button::after {
-  content: "▼";
-  display: inline-block;
-  font-size: 12px;
-  color: #666;
-  transition: transform 0.3s ease;
-}
-
-#comparison-panel.collapsed .dropdown-button::after {
-  transform: rotate(-180deg);
-}
-
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: 1fr;
@@ -348,10 +347,6 @@ h3 {
 
   .timeline-section {
     max-height: calc(100vh - 300px);
-  }
-
-  .dropdown-button {
-    display: none;
   }
 
   #comparison-panel {
@@ -611,4 +606,44 @@ h3 {
 .loader {
   display: inline-block;
   margin: 0 16px;
+}
+
+.dropdown {
+  position: relative;
+  cursor: pointer;
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(
+    45deg,
+    rgb(183, 0, 255) 20%,
+    rgb(255, 0, 170) 100%
+  );
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.363);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.dropdown input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.dropdown svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+  transition: transform 0.3s ease;
+  z-index: 1;
+  transform: rotate(180deg);
+}
+
+#comparison-panel:not(.collapsed) .dropdown svg {
+  transform: rotate(0deg);
 }
