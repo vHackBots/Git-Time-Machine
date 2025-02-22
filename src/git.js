@@ -2,89 +2,97 @@ const simpleGit = require("simple-git");
 
 async function getRepoData() {
   const git = simpleGit();
+  let isOffline = false;
 
-  // First fetch from all remotes to ensure we have latest data
+  const localData = await Promise.all([
+    git.branch(),
+    git.log(["--all"]),
+    git.tags(),
+  ]).catch((err) => {
+    console.error("Failed to get local repo data:", err);
+    return [null, null, null];
+  });
+
+  // Try to fetch remote data only after getting local data
   try {
     await git.fetch(["--all"]);
+    isOffline = false;
   } catch (error) {
-    console.warn("Failed to fetch from remote:", error.message);
+    console.warn("Working in offline mode - using local data only");
+    isOffline = true;
   }
 
-  const [log, branches, tags, remotes] = await Promise.all([
-    git.log(["--all"]),
-    git.branch(["-a"]),
-    git.tags(),
-    git.getRemotes(true), // true to get additional details
-  ]);
+  const [localBranches, log, tags] = localData;
 
-  // Get local branches
-  const localBranches = branches.all.filter(
+  if (!localBranches || !log) {
+    throw new Error("Failed to read local repository data");
+  }
+
+  // Get local branches first
+  const localBranchList = localBranches.all.filter(
     (branch) => !branch.includes("remotes/")
   );
 
-  // Get remote branches but exclude those that exist locally
-  const remoteBranches = branches.all
-    .filter((branch) => branch.startsWith("remotes/"))
-    .map((branch) => ({
-      name: branch.replace(/^remotes\//, ""),
-      fullName: branch,
-      remote: branch.split("/")[1],
-      shortName: branch.split("/").slice(2).join("/"),
-    }))
-    .filter(
-      (branch) =>
-        !branch.name.endsWith("/HEAD") &&
-        !localBranches.includes(branch.shortName) // Filter out remotes that exist locally
-    );
+  // Process remote branches and filter out those that exist locally
+  const remoteBranchList = isOffline
+    ? []
+    : localBranches.all
+        .filter((branch) => branch.startsWith("remotes/"))
+        .map((branch) => {
+          const shortName = branch.split("/").slice(2).join("/");
+          return {
+            name: branch.replace(/^remotes\//, ""),
+            fullName: branch,
+            remote: branch.split("/")[1],
+            shortName: shortName,
+          };
+        })
+        .filter(
+          (branch) =>
+            // Filter conditions:
+            !branch.name.endsWith("/HEAD") && // Remove HEAD references
+            !localBranchList.some(
+              (localBranch) =>
+                // Remove if shortName matches any local branch
+                localBranch === branch.shortName ||
+                // Also check if the branch name matches without the remote prefix
+                localBranch === branch.name.replace(/^origin\//, "")
+            )
+        );
 
-  // Combine commit data with reference information
+  // Process commits
   const commits = log.all.map((commit) => ({
     ...commit,
     fullRefs: commit.refs
       .split(",")
       .map((ref) => ref.trim())
       .filter(Boolean),
-    // Include remote references in the refs check
     refs: commit.refs
       .split(",")
       .map((ref) => ref.trim())
-      .filter((ref) => ref && !ref.includes("tag:"))
-      .map((ref) => ref.replace("origin/", "")),
+      .filter((ref) => ref && !ref.includes("tag:")),
   }));
 
   return {
     commits,
-    branches: localBranches,
-    remoteBranches,
-    current: branches.current,
-    tags: tags.all,
-    remotes: remotes,
+    branches: localBranchList,
+    remoteBranches: remoteBranchList,
+    current: localBranches.current,
+    tags: tags?.all || [],
+    isOffline,
   };
 }
 
 async function compareCommits(commit1, commit2) {
   const git = simpleGit();
 
-  // Handle remote references properly
-  const resolveRef = async (ref) => {
-    if (ref.includes("origin/")) {
-      try {
-        const hash = await git.revparse([ref]);
-        return hash;
-      } catch (error) {
-        return ref;
-      }
-    }
-    return ref;
-  };
-
-  const [resolvedCommit1, resolvedCommit2] = await Promise.all([
-    resolveRef(commit1),
-    resolveRef(commit2),
-  ]);
-
-  const diff = await git.diff([resolvedCommit1, resolvedCommit2]);
-  return diff;
+  try {
+    const diff = await git.diff([commit1, commit2]);
+    return diff;
+  } catch (error) {
+    console.error("Failed to compare commits:", error);
+    throw new Error(`Failed to compare commits: ${error.message}`);
+  }
 }
 
 async function checkoutRemoteBranch(branchName) {
