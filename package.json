@@ -1,0 +1,22 @@
+{
+  "name": "git-time-machine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "bin": {
+    "git-tm": "./src/server.js"
+  },
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "http-server": "^14.1.1",
+    "isomorphic-git": "^1.29.0"
+  }
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Time Machine</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>GitHub Time Machine</h1>
+    <section id="commits">
+      <h2>Commit History</h2>
+      <ul id="commit-list"></ul>
+    </section>
+    <section id="branches">
+      <h2>Branches</h2>
+      <ul id="branch-list"></ul>
+    </section>
+    <section id="compare">
+      <h2>Compare Commits</h2>
+      <input type="text" id="commit1" placeholder="Commit 1 Hash">
+      <input type="text" id="commit2" placeholder="Commit 2 Hash">
+      <button onclick="compareCommits()">Compare</button>
+      <pre id="diff-output"></pre>
+    </section>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
