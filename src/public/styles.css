@@ -1,64 +1,169 @@
 @font-face {
-  font-family: 'Inter';
+  font-family: "Inter";
   src: url("./fonts/InterVariable.woff2") format("woff2-variations");
   font-weight: 100 900;
   font-display: swap;
   font-style: normal;
 }
 
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --primary-blue: #2b85fd;
+  --secondary-blue: #1a73e8;
+  --accent-purple: #7c3aed;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --bg-dark: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.7);
+}
+
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   margin: 0;
-  padding: 20px;
-  background: #f5f5f5;
-  padding-bottom: calc(40vh + 40px);
+  padding: 0;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  background-image: radial-gradient(
+      at 40% 20%,
+      rgba(61, 64, 241, 0.271) 0px,
+      transparent 50%
+    ),
+    radial-gradient(at 80% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(43, 133, 253, 0.15) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar,
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 #app {
-  max-width: 1200px;
-  margin: 0 auto;
+  height: 100vh;
+  max-width: 100vw;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(20px);
 }
 
 header {
-  background: #fff;
-  padding: 20px;
+  flex-shrink: 0;
+  background: var(--glass-bg);
+  padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  margin-bottom: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0 0 10px 0;
+}
+
+#repo-info {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.repo-details {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.repo-name {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.branch-name {
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.9em;
 }
 
 .commit {
   padding: 12px;
   margin: 8px 0;
   border-radius: 6px;
-  border: 1px solid #e1e4e8;
-  background: #fff;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-card);
   display: grid;
   grid-template-columns: 80px 1fr 150px;
   gap: 12px;
   align-items: center;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--text-primary);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
 }
 
 .commit:hover {
-  background: #f6f8fa;
+  background: rgba(30, 41, 59, 0.9);
   transform: translateX(2px);
+  border: 1px solid var(--primary-blue);
+}
+
+.commit::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.commit:hover::before {
+  transform: translateX(100%);
 }
 
 .commit.selected-first {
-  border-left-color: #0366d6;
-  background: #f1f8ff;
+  border: 1px solid var(--primary-blue);
+  background: rgba(43, 133, 253, 0.2);
 }
 
 .commit.selected-second {
-  border-left-color: #28a745;
-  background: #f1fff8;
+  border: 1px solid var(--accent-purple);
+  background: rgba(124, 58, 237, 0.2);
 }
 
 .commit-hash {
   font-family: monospace;
-  color: #0366d6;
+  color: var(--primary-blue);
 }
 
 .commit-message {
@@ -67,11 +172,11 @@ header {
 
 .commit-author,
 .commit-date {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .commit-date {
-  color: #666;
+  color: var(--text-secondary);
   white-space: nowrap;
   font-family: monospace;
   min-width: 200px;
@@ -82,34 +187,40 @@ header {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--glass-bg);
   padding: 15px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  height: 60vh;
+  height: 50vh;
+  max-height: 50vh;
   display: flex;
   flex-direction: column;
   z-index: 1000;
   transition: height 0.3s ease;
-  max-height: 95vh;
   overflow-y: auto;
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--glass-border);
 }
 
 #comparison-panel.active {
   display: block;
 }
 
+#comparison-panel.collapsed {
+  height: 60px;
+}
+
 .diff-content {
-  background: #ffffff;
+  background: var(--bg-card);
   padding: 15px;
   border-radius: 6px;
   font-family: "Fira Code", "Consolas", monospace;
   overflow-y: auto;
   line-height: 1.5;
   font-size: 14px;
-  height: calc(100% - 100px);
+  height: calc(50vh - 140px);
   contain: content;
   will-change: transform;
-  border: 1px solid #e1e4e8;
+  border: 1px solid var(--glass-border);
 }
 
 .diff-line {
@@ -120,6 +231,7 @@ header {
   line-height: 1.5;
   margin: 0;
   position: relative;
+  background: black;
 }
 
 .line-numbers {
@@ -209,13 +321,14 @@ header {
   letter-spacing: 2px;
   font-weight: 500;
   color: #ffffff;
-  background-color: #dc3545;
+  background: rgba(220, 53, 69, 0.8);
   border: none;
   border-radius: 45px;
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease 0s;
   cursor: pointer;
   outline: none;
+  backdrop-filter: blur(10px);
 }
 
 .clear-button:hover {
@@ -230,18 +343,23 @@ header {
 }
 
 .layout {
+  flex: 1;
   display: grid;
   grid-template-columns: 250px 1fr;
   gap: 20px;
-  margin-top: 20px;
+  height: calc(100vh - 180px);
+  overflow: hidden;
 }
 
 .sidebar {
-  background: #fff;
+  background: var(--glass-bg);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: fit-content;
+  height: 100%;
+  overflow-y: auto;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
 }
 
 .branch-list {
@@ -254,14 +372,15 @@ header {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--text-primary);
 }
 
 .branch-item:hover {
-  background: #f1f8ff;
+  background: rgba(43, 133, 253, 0.2);
 }
 
 .branch-item.active {
-  background: #0366d6;
+  background: var(--primary-blue);
   color: white;
 }
 
@@ -271,14 +390,14 @@ header {
 
 .branch-section h3 {
   font-size: 0.9em;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid #eee;
 }
 
 .branch-item.remote {
-  color: #6a737d;
+  color: var(--text-secondary);
   padding-left: 20px;
   position: relative;
 }
@@ -287,23 +406,38 @@ header {
   content: "⇋";
   position: absolute;
   left: 6px;
-  color: #6a737d;
+  color: var(--text-secondary);
 }
 
 .timeline-section {
-  background: #fff;
+  background: var(--glass-bg);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  max-height: calc(100vh - 250px);
+  height: 100%;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  position: relative;
+  background: linear-gradient(
+    to bottom,
+    var(--glass-bg),
+    rgba(30, 41, 59, 0.8)
+  );
+  display: flex;
+  flex-direction: column;
+}
+
+.commits-container {
+  margin-top: 10px;
   overflow-y: auto;
-  overflow-x: hidden; 
+  flex: 1;
+  padding-right: 10px;
 }
 
 .commits-container {
   margin-top: 10px;
   overflow-y: hidden;
-  overflow-x: hidden; 
+  overflow-x: hidden;
 }
 
 .comparison-header {
@@ -331,26 +465,43 @@ header {
 
 .commit-select {
   padding: 6px 12px;
-  border: 1px solid #e1e4e8;
+  border: 1px solid var(--glass-border);
   border-radius: 6px;
   width: 300px;
   font-family: monospace;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  backdrop-filter: blur(10px);
+}
+
+.branch-info {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.branch-info div {
+  background: var(--bg-card);
+  padding: 4px 12px;
+  border-radius: 15px;
 }
 
 h2,
 h3 {
   margin: 0;
-  color: #24292e;
+  color: #ffffff;
 }
 
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: 1fr;
+    height: calc(100vh - 160px);
   }
 
   body {
-    padding: 10px;
-    padding-bottom: calc(35vh + 40px);
+    padding: 0;
   }
 
   .commit {
@@ -373,16 +524,15 @@ h3 {
   }
 
   .timeline-section {
-    max-height: calc(100vh - 300px);
+    max-height: none;
   }
 
   #comparison-panel {
-    height: 70vh;
-    max-height: 90vh;
+    height: 45vh;
   }
 
-  #comparison-panel.collapsed {
-    height: 70vh;
+  .diff-content {
+    height: calc(45vh - 140px);
   }
 }
 
@@ -401,12 +551,8 @@ h3 {
   cursor: pointer;
   width: 45px;
   height: 45px;
-  background: linear-gradient(
-    45deg,
-    rgb(183, 0, 255) 20%,
-    rgb(255, 0, 170) 100%
-  );
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.363);
+  background: var(--primary-blue);
+  box-shadow: 0 8px 32px rgba(43, 133, 253, 0.3);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -443,20 +589,21 @@ h3 {
 
 .diff-file {
   margin-bottom: 20px;
-  border: 1px solid #e1e4e8;
+  border: 1px solid var(--glass-border);
   border-radius: 6px;
   overflow: hidden;
+  background: var(--bg-card);
 }
 
 .diff-file-header {
-  background: #f6f8fa;
+  background: rgba(30, 41, 59, 0.9);
   padding: 10px 16px;
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
   user-select: none;
-  border-bottom: 1px solid #e1e4e8;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .file-status {
@@ -466,15 +613,11 @@ h3 {
   min-width: 24px;
 }
 
-.diff-file-header:hover {
-  background: #f0f2f4;
-}
-
 .diff-file-name {
   flex-grow: 1;
   font-family: monospace;
   font-weight: 600;
-  color: #24292e;
+  color: #ffffff;
 }
 
 .diff-stats {
@@ -503,17 +646,17 @@ h3 {
 }
 
 .diff-file-content {
-  background: #ffffff;
+  background: #1a2b4b;
   overflow-x: auto;
 }
 
 .diff-hunk-header {
-  color: #2d333b;
-  background: #e7ecf0;
+  color: #e2e8f0;
+  background: #243660;
   padding: 8px 16px;
   font-family: monospace;
   font-size: 12px;
-  border-bottom: 1px solid #d0d7de;
+  border-bottom: 1px solid #334873;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -541,7 +684,7 @@ h3 {
   color: #cf222e;
 }
 
-.fullscreen-loader,
+.diff-line .fullscreen-loader,
 .terminal-loader {
   display: none;
 }
@@ -552,16 +695,22 @@ h3 {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(255, 255, 255);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+#loader-container.fade-out {
+  opacity: 0;
 }
 
 .loader {
   --path: #2f3545;
-  --dot: #5628ee;
+  --dot: #0366d6;
   --duration: 3s;
   width: 44px;
   height: 44px;
@@ -717,4 +866,45 @@ h3 {
   margin: 0 16px;
 }
 
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
 
+.bento-item {
+  background: var(--glass-bg);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.bento-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 32px rgba(43, 133, 253, 0.2);
+  border-color: var(--primary-blue);
+}
+
+.bento-item.featured {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.fade-out {
+  opacity: 0 !important;
+}
