@@ -39,10 +39,10 @@ async function getRepoData() {
   let remoteBranchList = [];
   if (!isOffline && remotes) {
     try {
-      // Get detailed remote branch info
+      // Get detailed remote branch info using for-each-ref to get actual branches only
       const remoteBranches = await git.raw([
-        "branch",
-        "-r",
+        "for-each-ref",
+        "refs/remotes",
         "--format=%(refname:short)",
       ]);
 
@@ -52,6 +52,7 @@ async function getRepoData() {
           (branch) =>
             branch &&
             !branch.endsWith("/HEAD") &&
+            branch.split("/").length > 1 && // Ensure it has at least origin/branchname format
             !localBranchList.some((localBranch) =>
               branch.endsWith("/" + localBranch)
             )
@@ -101,11 +102,22 @@ async function getBranchCommits(branchName) {
       baseBranch = "master";
     }
 
+    // Handle remote branch names by getting the proper ref
+    let targetBranch = branchName;
+    if (branchName.startsWith("remotes/")) {
+      // Skip bare "remotes/origin" and invalid remote refs
+      if (branchName === "remotes/origin" || !branchName.includes("/")) {
+        return [];
+      }
+      // Use the full ref path for remote branches
+      targetBranch = branchName.replace("remotes/", "refs/remotes/");
+    }
+
     // Get branch-specific commits using rev-list to find commit range
     const revList = await git.raw([
       "rev-list",
       "--first-parent", // Follow only first parent for merge commits
-      branchName, // Start from the branch head
+      targetBranch, // Use the processed branch name
       "^" + baseBranch, // Exclude commits reachable from main/master
       "--not", // Exclude commits from other branches
       "--all", // Consider all refs
@@ -113,7 +125,7 @@ async function getBranchCommits(branchName) {
 
     // If no branch-specific commits found, get all commits for this branch
     if (!revList.trim()) {
-      const log = await git.log(["--first-parent", branchName]);
+      const log = await git.log(["--first-parent", targetBranch]);
       return log.all;
     }
 
