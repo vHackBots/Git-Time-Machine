@@ -157,9 +157,17 @@ async function getBranchCommits(branchName) {
 
 async function compareCommits(commit1, commit2) {
   const git = simpleGit();
-
   try {
-    const diff = await git.diff([commit1, commit2]);
+    // Add --binary flag to show binary file differences
+    // Use -p for patch format and --no-color for raw output
+    const diff = await git.raw([
+      "diff",
+      "--binary",
+      "-p",
+      "--no-color",
+      commit1,
+      commit2,
+    ]);
     return diff;
   } catch (error) {
     console.error("Failed to compare commits:", error);

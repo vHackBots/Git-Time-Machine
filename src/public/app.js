@@ -377,71 +377,70 @@ function formatDiffContent(content) {
   return formattedLines.join("");
 }
 
-function formatDiff(diff) {
-  const files = parseDiffToFiles(diff);
-  return files
-    .map((file) => {
-      const status = getFileStatus(file.content);
-      return `
-    <div class="diff-file collapsed">
-      <div class="diff-file-header" onclick="toggleDiffContent(this)">
-        <span class="file-status" style="color: ${getStatusColor(
-          status
-        )}">[${status}]</span>
-        <span class="diff-file-name">${file.name}</span>
-        ${
-          !file.isBinary
-            ? `
-          <div class="diff-stats">
-            <span class="diff-added">+${file.additions}</span>
-            <span class="diff-removed">-${file.deletions}</span>
-          </div>
-        `
-            : '<span class="diff-binary">Binary file</span>'
-        }
-        <span class="diff-collapse-icon">▼</span>
-      </div>
-      <div class="diff-file-content">
-        ${
-          file.isBinary
-            ? '<div class="binary-file-message">Binary file not shown</div>'
-            : formatDiffContent(file.content)
-        }
-      </div>
-    </div>`;
-    })
-    .join("");
-}
-
 function parseDiffToFiles(diff) {
   const files = [];
   let currentFile = null;
   let content = [];
-  let isBinary = false;
 
-  diff.split("\n").forEach((line) => {
+  const lines = diff.split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
     if (line.startsWith("diff --git")) {
+      // Save previous file if exists
       if (currentFile) {
-        currentFile.content = isBinary ? "Binary file" : content.join("\n");
-        currentFile.isBinary = isBinary;
+        currentFile.content = content.join("\n");
         files.push(currentFile);
       }
-      const fileName = line.split(" b/")[1];
+
+      // Start new file
+      const [_, pathA, pathB] = line.match(/diff --git a\/(.*) b\/(.*)/);
       currentFile = {
-        name: fileName,
+        name: pathB,
+        oldName: pathA,
         content: "",
         additions: 0,
         deletions: 0,
         isBinary: false,
       };
       content = [];
-      isBinary = false;
-    } else if (
-      line.includes("Binary files") ||
-      (line.includes("Files") && line.includes("differ"))
-    ) {
-      isBinary = true;
-    } else if (currentFile && !isBinary) {
+
+      // Look ahead for binary indicator
+      let j = i + 1;
+      while (j < lines.length && !lines[j].startsWith("diff --git")) {
+        if (lines[j].match(/^index [0-9a-f]+\.\.[0-9a-f]+/)) {
+          // Not a binary file, continue
+          break;
+        }
+        if (
+          lines[j].includes("Binary files") ||
+          lines[j].includes("GIT binary patch")
+        ) {
+          currentFile.isBinary = true;
+          // Try to get the file type
+          const ext = pathB.split(".").pop().toLowerCase();
+          currentFile.fileType = ext;
+          break;
+        }
+        j++;
+      }
+
+      if (!currentFile.isBinary) {
+        // Skip index and mode lines
+        while (
+          j < lines.length &&
+          (lines[j].startsWith("index") ||
+            lines[j].startsWith("old mode") ||
+            lines[j].startsWith("new mode"))
+        ) {
+          j++;
+        }
+        i = j - 1; // Resume main loop after header
+      } else {
+        i = j; // Skip binary content
+      }
+    } else if (currentFile && !currentFile.isBinary) {
       content.push(line);
       if (line.startsWith("+") && !line.startsWith("+++")) {
         currentFile.additions++;
@@ -450,15 +449,51 @@ function parseDiffToFiles(diff) {
         currentFile.deletions++;
       }
     }
-  });
+  }
 
+  // Add last file
   if (currentFile) {
-    currentFile.content = isBinary ? "Binary file" : content.join("\n");
-    currentFile.isBinary = isBinary;
+    currentFile.content = content.join("\n");
     files.push(currentFile);
   }
 
   return files;
+}
+
+function formatDiff(diff) {
+  const files = parseDiffToFiles(diff);
+  return files
+    .map((file) => {
+      const status = getFileStatus(file.content);
+      const fileInfo = file.isBinary
+        ? `<div class="diff-file-info">Binary file (${
+            file.fileType || "unknown"
+          } format)</div>`
+        : `<div class="diff-stats">
+         <span class="diff-added">+${file.additions}</span>
+         <span class="diff-removed">-${file.deletions}</span>
+       </div>`;
+
+      return `
+      <div class="diff-file collapsed">
+        <div class="diff-file-header" onclick="toggleDiffContent(this)">
+          <span class="file-status" style="color: ${getStatusColor(
+            status
+          )}">[${status}]</span>
+          <span class="diff-file-name">${file.name}</span>
+          ${fileInfo}
+          <span class="diff-collapse-icon">▼</span>
+        </div>
+        <div class="diff-file-content">
+          ${
+            file.isBinary
+              ? `<div class="binary-message">Binary file changes cannot be displayed</div>`
+              : formatDiffContent(file.content)
+          }
+        </div>
+      </div>`;
+    })
+    .join("");
 }
 
 function toggleDiffContent(header) {

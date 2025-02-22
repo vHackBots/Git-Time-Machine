@@ -934,3 +934,21 @@ h3 {
 .fade-out {
   opacity: 0 !important;
 }
+
+.binary-message {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-dark);
+  border-radius: 4px;
+  margin: 10px;
+}
+
+.diff-file-info {
+  color: var(--text-secondary);
+  margin-right: 16px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 0.9em;
+}
