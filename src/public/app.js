@@ -629,5 +629,5 @@ function showToast(message, type = "info") {
       toast.classList.add("hide");
       setTimeout(() => toast.remove(), 500);
     }
-  }, 5000);
+  }, 2000);
 }
