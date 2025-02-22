@@ -138,46 +138,47 @@ async function handleBranchClick(branchElement) {
     const isRemote = branchElement.classList.contains("remote");
     const branchName = branchElement.dataset.branch;
 
-    if (isRemote) {
-      try {
-        const response = await fetch(
-          `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
-          {
-            method: "POST",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to checkout branch");
-        }
-
-        const data = await response.json();
-        allCommits = data.commits;
-
-        renderBranches(data.branches, data.current, data.remoteBranches);
-        renderCommits(data.commits);
-        updateCommitSelectors(data.commits);
-      } catch (error) {
-        console.error("Failed to checkout remote branch:", error);
-        return;
-      }
-    }
-
     document
       .querySelectorAll(".branch-item")
       .forEach((el) => el.classList.remove("active"));
     branchElement.classList.add("active");
     currentBranch = branchName;
 
-    const branchRef = isRemote ? branchName : currentBranch;
-    const branchCommits = allCommits.filter(
-      (commit) =>
-        commit.fullRefs &&
-        commit.fullRefs.some((ref) => ref.includes(branchRef))
+    // Get all commits for this branch
+    const response = await fetch(
+      `/api/branch-commits?branch=${encodeURIComponent(branchName)}`
     );
+    if (!response.ok) {
+      throw new Error("Failed to fetch branch commits");
+    }
 
+    const branchCommits = await response.json();
     renderCommits(branchCommits);
-    updateCommitSelectors(allCommits);
+    updateCommitSelectors(branchCommits);
+
+    // If it's a remote branch that needs to be checked out
+    if (isRemote) {
+      try {
+        const checkoutResponse = await fetch(
+          `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
+          { method: "POST" }
+        );
+
+        if (!checkoutResponse.ok) {
+          throw new Error("Failed to checkout branch");
+        }
+
+        const data = await checkoutResponse.json();
+        renderBranches(data.branches, data.current, data.remoteBranches);
+      } catch (error) {
+        console.error("Failed to checkout remote branch:", error);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to handle branch click:", error);
+    const timeline = document.querySelector(".commits-container");
+    timeline.innerHTML =
+      '<div class="error">Failed to load branch commits</div>';
   } finally {
     hideLoader();
   }

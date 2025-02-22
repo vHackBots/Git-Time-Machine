@@ -1,6 +1,11 @@
 const express = require("express");
 const path = require("path");
-const { getRepoData, compareCommits, checkoutRemoteBranch } = require("./git");
+const {
+  getRepoData,
+  compareCommits,
+  checkoutRemoteBranch,
+  getBranchCommits, // Add this import
+} = require("./git");
 
 const app = express();
 
@@ -43,6 +48,23 @@ app.post("/api/checkout-remote", async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/branch-commits", async (req, res) => {
+  try {
+    const { branch } = req.query;
+    if (!branch) {
+      return res.status(400).json({ error: "Missing branch name" });
+    }
+    const commits = await getBranchCommits(branch);
+    res.json(commits);
+  } catch (error) {
+    console.error("Failed to get branch commits:", error);
+    res.status(500).json({
+      error: "Failed to get branch commits",
+      details: error.message,
+    });
   }
 });
 

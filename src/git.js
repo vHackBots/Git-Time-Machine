@@ -83,6 +83,72 @@ async function getRepoData() {
   };
 }
 
+async function getBranchCommits(branchName) {
+  const git = simpleGit();
+  try {
+    // First, find the branch's merge base with main/master
+    let baseBranch = "main";
+    try {
+      await git.show(["main"]);
+    } catch {
+      baseBranch = "master";
+    }
+
+    // Get branch-specific commits using rev-list to find commit range
+    const revList = await git.raw([
+      "rev-list",
+      "--first-parent", // Follow only first parent for merge commits
+      branchName, // Start from the branch head
+      "^" + baseBranch, // Exclude commits reachable from main/master
+      "--not", // Exclude commits from other branches
+      "--all", // Consider all refs
+    ]);
+
+    // If no branch-specific commits found, get all commits for this branch
+    if (!revList.trim()) {
+      const log = await git.log(["--first-parent", branchName]);
+      return log.all;
+    }
+
+    // Get detailed commit info for branch-specific commits
+    const commits = [];
+    const commitHashes = revList.split("\n").filter((hash) => hash.trim());
+
+    for (const hash of commitHashes) {
+      if (!hash) continue;
+
+      const commitInfo = await git.show([
+        "--format=%H%n%an%n%ae%n%at%n%s%n%D",
+        "--no-patch",
+        hash,
+      ]);
+
+      const [
+        commitHash,
+        authorName,
+        authorEmail,
+        timestamp,
+        subject,
+        refs = "",
+      ] = commitInfo.split("\n");
+
+      commits.push({
+        hash: commitHash,
+        author_name: authorName,
+        author_email: authorEmail,
+        date: new Date(parseInt(timestamp) * 1000).toISOString(),
+        message: subject,
+        refs: refs,
+      });
+    }
+
+    return commits;
+  } catch (error) {
+    console.error("Failed to get branch commits:", error);
+    throw error;
+  }
+}
+
 async function compareCommits(commit1, commit2) {
   const git = simpleGit();
 
@@ -114,6 +180,7 @@ async function checkoutRemoteBranch(branchName) {
 
 module.exports = {
   getRepoData,
+  getBranchCommits,
   compareCommits,
   checkoutRemoteBranch,
 };
