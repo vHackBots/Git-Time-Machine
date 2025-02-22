@@ -6,14 +6,29 @@ let selectedCommits = {
 let currentBranch = null;
 let allCommits = [];
 
+function showLoader() {
+  document.getElementById("loader-container").style.display = "flex";
+  document.getElementById("app").style.opacity = "0.5";
+}
+
+function hideLoader() {
+  document.getElementById("loader-container").style.display = "none";
+  document.getElementById("app").style.opacity = "1";
+}
+
 async function fetchRepoData() {
-  const response = await fetch("/api/repo-data");
-  const data = await response.json();
-  return data;
+  showLoader();
+  try {
+    const response = await fetch("/api/repo-data");
+    const data = await response.json();
+    return data;
+  } finally {
+    hideLoader();
+  }
 }
 
 function sanitizeHTML(str) {
-  const div = document.createElement('div');
+  const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
 }
@@ -42,10 +57,18 @@ function renderTimeline(commits) {
     .map(
       (commit) => `
             <div class="commit" data-hash="${sanitizeHTML(commit.hash)}">
-                <div class="commit-hash">${sanitizeHTML(commit.hash.slice(0, 7))}</div>
-                <div class="commit-message">${sanitizeHTML(commit.message)}</div>
-                <div class="commit-author">${sanitizeHTML(commit.author_name)}</div>
-                <div class="commit-date">${sanitizeHTML(formatDate(commit.date))}</div>
+                <div class="commit-hash">${sanitizeHTML(
+                  commit.hash.slice(0, 7)
+                )}</div>
+                <div class="commit-message">${sanitizeHTML(
+                  commit.message
+                )}</div>
+                <div class="commit-author">${sanitizeHTML(
+                  commit.author_name
+                )}</div>
+                <div class="commit-date">${sanitizeHTML(
+                  formatDate(commit.date)
+                )}</div>
             </div>
         `
     )
@@ -112,49 +135,55 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
 }
 
 async function handleBranchClick(branchElement) {
-  const isRemote = branchElement.classList.contains("remote");
-  const branchName = branchElement.dataset.branch;
+  showLoader();
+  try {
+    const isRemote = branchElement.classList.contains("remote");
+    const branchName = branchElement.dataset.branch;
 
-  if (isRemote) {
-    try {
-      const response = await fetch(
-        `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
-        {
-          method: "POST",
+    if (isRemote) {
+      try {
+        const response = await fetch(
+          `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
+          {
+            method: "POST",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to checkout branch");
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to checkout branch");
+        const data = await response.json();
+        allCommits = data.commits;
+
+        // Re-render the UI with updated data
+        renderBranches(data.branches, data.current, data.remoteBranches);
+        renderCommits(data.commits);
+        updateCommitSelectors(data.commits);
+      } catch (error) {
+        console.error("Failed to checkout remote branch:", error);
+        return;
       }
-
-      const data = await response.json();
-      allCommits = data.commits;
-
-      // Re-render the UI with updated data
-      renderBranches(data.branches, data.current, data.remoteBranches);
-      renderCommits(data.commits);
-      updateCommitSelectors(data.commits);
-    } catch (error) {
-      console.error("Failed to checkout remote branch:", error);
-      return;
     }
+
+    document
+      .querySelectorAll(".branch-item")
+      .forEach((el) => el.classList.remove("active"));
+    branchElement.classList.add("active");
+    currentBranch = branchName;
+
+    const branchRef = isRemote ? branchName : currentBranch;
+    const branchCommits = allCommits.filter(
+      (commit) =>
+        commit.fullRefs &&
+        commit.fullRefs.some((ref) => ref.includes(branchRef))
+    );
+
+    renderCommits(branchCommits);
+    updateCommitSelectors(allCommits);
+  } finally {
+    hideLoader();
   }
-
-  document
-    .querySelectorAll(".branch-item")
-    .forEach((el) => el.classList.remove("active"));
-  branchElement.classList.add("active");
-  currentBranch = branchName;
-
-  const branchRef = isRemote ? branchName : currentBranch;
-  const branchCommits = allCommits.filter(
-    (commit) =>
-      commit.fullRefs && commit.fullRefs.some((ref) => ref.includes(branchRef))
-  );
-
-  renderCommits(branchCommits);
-  updateCommitSelectors(allCommits);
 }
 
 function renderCommits(commits) {
@@ -180,7 +209,9 @@ function updateCommitSelectors(commits) {
     .map(
       (commit) => `
             <option value="${sanitizeHTML(commit.hash)}">
-                ${sanitizeHTML(commit.hash.slice(0, 7))} - ${sanitizeHTML(commit.message)}
+                ${sanitizeHTML(commit.hash.slice(0, 7))} - ${sanitizeHTML(
+        commit.message
+      )}
             </option>
         `
     )
@@ -219,29 +250,36 @@ function handleCommitClick(commitElement) {
 }
 
 async function handleCompare() {
-  const baseHash = document.getElementById("base-commit-select").value;
-  const compareHash = document.getElementById("compare-commit-select").value;
-
-  if (baseHash === compareHash) {
-    alert("Please select different commits to compare");
-    return;
-  }
-
+  showLoader();
   try {
-    const response = await fetch(
-      `/api/compare?from=${baseHash}&to=${compareHash}`
-    );
-    const diff = await response.text();
-    document.getElementById("diff-output").innerHTML = formatDiff(diff);
-    document.getElementById("comparison-panel").classList.add("active");
-  } catch (error) {
-    console.error("Failed to compare commits:", error);
+    const baseHash = document.getElementById("base-commit-select").value;
+    const compareHash = document.getElementById("compare-commit-select").value;
+
+    if (baseHash === compareHash) {
+      alert("Please select different commits to compare");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/compare?from=${baseHash}&to=${compareHash}`
+      );
+      const diff = await response.text();
+      document.getElementById("diff-output").innerHTML = formatDiff(diff);
+      document.getElementById("comparison-panel").classList.add("active");
+    } catch (error) {
+      console.error("Failed to compare commits:", error);
+    }
+  } finally {
+    hideLoader();
   }
 }
 
 function formatDiff(diff) {
   const files = parseDiffToFiles(diff);
-  return files.map(file => `
+  return files
+    .map(
+      (file) => `
     <div class="diff-file collapsed">
       <div class="diff-file-header" onclick="toggleDiffContent(this)">
         <span class="diff-file-name">${file.name}</span>
@@ -255,62 +293,68 @@ function formatDiff(diff) {
         ${formatDiffContent(file.content)}
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join("");
 }
 
 function parseDiffToFiles(diff) {
   const files = [];
   let currentFile = null;
   let content = [];
-  
-  diff.split('\n').forEach(line => {
-    if (line.startsWith('diff --git')) {
+
+  diff.split("\n").forEach((line) => {
+    if (line.startsWith("diff --git")) {
       if (currentFile) {
-        currentFile.content = content.join('\n');
+        currentFile.content = content.join("\n");
         files.push(currentFile);
       }
-      const fileName = line.split(' b/')[1];
+      const fileName = line.split(" b/")[1];
       currentFile = {
         name: fileName,
-        content: '',
+        content: "",
         additions: 0,
-        deletions: 0
+        deletions: 0,
       };
       content = [];
     } else if (currentFile) {
       content.push(line);
-      if (line.startsWith('+') && !line.startsWith('+++')) currentFile.additions++;
-      if (line.startsWith('-') && !line.startsWith('---')) currentFile.deletions++;
+      if (line.startsWith("+") && !line.startsWith("+++"))
+        currentFile.additions++;
+      if (line.startsWith("-") && !line.startsWith("---"))
+        currentFile.deletions++;
     }
   });
-  
+
   if (currentFile) {
-    currentFile.content = content.join('\n');
+    currentFile.content = content.join("\n");
     files.push(currentFile);
   }
-  
+
   return files;
 }
 
 function formatDiffContent(content) {
   let lineNumber = 1;
   return content
-    .split('\n')
-    .map(line => {
-      let className = 'diff-line';
-      if (line.startsWith('+')) {
-        className += ' addition';
-      } else if (line.startsWith('-')) {
-        className += ' deletion';
+    .split("\n")
+    .map((line) => {
+      let className = "diff-line";
+      if (line.startsWith("+")) {
+        className += " addition";
+      } else if (line.startsWith("-")) {
+        className += " deletion";
       }
-      return `<div class="${className}" data-line-number="${lineNumber++}">${sanitizeHTML(line)}</div>`;
+      return `<div class="${className}" data-line-number="${lineNumber++}">${sanitizeHTML(
+        line
+      )}</div>`;
     })
-    .join('');
+    .join("");
 }
 
 function toggleDiffContent(header) {
   const fileElement = header.parentElement;
-  fileElement.classList.toggle('collapsed');
+  fileElement.classList.toggle("collapsed");
 }
 
 function clearSelection() {
@@ -353,7 +397,7 @@ async function init() {
     document
       .getElementById("clear-button")
       .addEventListener("click", clearComparison);
-      
+
     document.getElementById("comparison-panel").classList.add("collapsed");
   } catch (error) {
     console.error("Failed to load repository data:", error);
