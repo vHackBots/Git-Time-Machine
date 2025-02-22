@@ -188,44 +188,40 @@ header h1 {
   left: 0;
   right: 0;
   background: var(--glass-bg);
-  padding: 15px;
+  padding: 15px 15px 25px 15px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  height: 60px;
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
+  overflow: hidden;
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--glass-border);
-  transform-origin: bottom;
-  clip-path: inset(0 0 0 0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 95vh;
+  transform: translateY(calc(100% - 45px));
 }
 
 #comparison-panel.collapsed {
-  height: 60px;
+  transform: translateY(calc(100% - 90px));
 }
 
 #comparison-panel:not(.collapsed) {
-  height: 100vh;
-  bottom: 0;
-  top: 0;
-  clip-path: inset(0);
+  transform: translateY(0);
 }
 
 .diff-content {
+  margin-top: 15px;
+  flex: 1;
+  overflow-y: auto;
   background: var(--bg-card);
   padding: 15px;
   border-radius: 6px;
   font-family: "Fira Code", "Consolas", monospace;
-  overflow-y: auto;
   line-height: 1.5;
   font-size: 14px;
-  height: calc(100vh - 140px);
   contain: content;
   will-change: transform;
   border: 1px solid var(--glass-border);
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .diff-line {
@@ -352,16 +348,19 @@ header h1 {
   display: grid;
   grid-template-columns: 250px 1fr;
   gap: 20px;
-  height: calc(100vh - 180px);
+  height: calc(100vh - 260px);
   overflow: hidden;
+  margin-bottom: 60px;
 }
 
 .sidebar {
   background: var(--glass-bg);
   padding: 20px;
+  overflow-x: hidden;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: calc(100vh - 220px);
+  height: calc(100vh - 292px);
+  width: 219px;
   overflow-y: auto;
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(10px);
@@ -449,7 +448,7 @@ header h1 {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: calc(100vh - 220px);
+  height: calc(100vh - 292px);
   margin-bottom: 0;
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(10px);
@@ -467,14 +466,14 @@ header h1 {
   margin-top: 10px;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 360px);
   padding-right: 16px;
+  padding-bottom: 20px;
 }
 
 .comparison-header {
   position: relative;
-  padding: 15px;
-  border-bottom: 1px solid #e1e4e8;
+  padding: 5px 15px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -485,7 +484,7 @@ header h1 {
   display: flex;
   gap: 15px;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 2px;
 }
 
 .select-group {
@@ -589,6 +588,7 @@ h3 {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  margin-left: 10px;
 }
 
 .dropdown input {
