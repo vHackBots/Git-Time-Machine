@@ -18,6 +18,24 @@ function sanitizeHTML(str) {
   return div.innerHTML;
 }
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return (
+    date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }) +
+    " " +
+    date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })
+  );
+}
+
 function renderTimeline(commits) {
   const timeline = document.getElementById("timeline");
   timeline.innerHTML = commits
@@ -27,9 +45,7 @@ function renderTimeline(commits) {
                 <div class="commit-hash">${sanitizeHTML(commit.hash.slice(0, 7))}</div>
                 <div class="commit-message">${sanitizeHTML(commit.message)}</div>
                 <div class="commit-author">${sanitizeHTML(commit.author_name)}</div>
-                <div class="commit-date">${sanitizeHTML(new Date(
-                  commit.date
-                ).toLocaleDateString())}</div>
+                <div class="commit-date">${sanitizeHTML(formatDate(commit.date))}</div>
             </div>
         `
     )
@@ -42,20 +58,51 @@ function renderTimeline(commits) {
   });
 }
 
-function renderBranches(branches, currentBranchName) {
+function renderBranches(branches, currentBranchName, remoteBranches) {
   const branchList = document.getElementById("branch-list");
-  branchList.innerHTML = branches
+
+  // Local branches section
+  const localBranchesHtml = branches
     .map(
       (branch) => `
-            <div class="branch-item ${
-              branch === currentBranchName ? "active" : ""
-            }" 
-                 data-branch="${sanitizeHTML(branch)}">
-                ${sanitizeHTML(branch)}
-            </div>
-        `
+        <div class="branch-item ${
+          branch === currentBranchName ? "active" : ""
+        }" 
+             data-branch="${sanitizeHTML(branch)}">
+            ${sanitizeHTML(branch)}
+        </div>
+    `
     )
     .join("");
+
+  // Remote branches section with proper remote names
+  const remoteBranchesHtml = remoteBranches?.length
+    ? `
+      <div class="branch-section">
+        <h3>Remote Branches</h3>
+        ${remoteBranches
+          .map(
+            (branch) => `
+              <div class="branch-item remote" 
+                   data-branch="${branch.fullName}"
+                   data-remote="${branch.remote}"
+                   title="${branch.fullName}">
+                ${branch.remote}/${branch.shortName}
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    `
+    : "";
+
+  branchList.innerHTML = `
+    <div class="branch-section">
+      <h3>Local Branches</h3>
+      ${localBranchesHtml}
+    </div>
+    ${remoteBranchesHtml}
+  `;
 
   branchList.querySelectorAll(".branch-item").forEach((branchElement) => {
     branchElement.addEventListener("click", () =>
@@ -64,16 +111,48 @@ function renderBranches(branches, currentBranchName) {
   });
 }
 
-function handleBranchClick(branchElement) {
+async function handleBranchClick(branchElement) {
+  const isRemote = branchElement.classList.contains("remote");
+  const branchName = branchElement.dataset.branch;
+
+  if (isRemote) {
+    try {
+      const response = await fetch(
+        `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
+        {
+          method: "POST",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to checkout branch");
+      }
+
+      const data = await response.json();
+      allCommits = data.commits;
+
+      // Re-render the UI with updated data
+      renderBranches(data.branches, data.current, data.remoteBranches);
+      renderCommits(data.commits);
+      updateCommitSelectors(data.commits);
+    } catch (error) {
+      console.error("Failed to checkout remote branch:", error);
+      return;
+    }
+  }
+
   document
     .querySelectorAll(".branch-item")
     .forEach((el) => el.classList.remove("active"));
   branchElement.classList.add("active");
-  currentBranch = branchElement.dataset.branch;
+  currentBranch = branchName;
 
+  const branchRef = isRemote ? branchName : currentBranch;
   const branchCommits = allCommits.filter(
-    (commit) => commit.refs && commit.refs.includes(currentBranch)
+    (commit) =>
+      commit.fullRefs && commit.fullRefs.some((ref) => ref.includes(branchRef))
   );
+
   renderCommits(branchCommits);
   updateCommitSelectors(allCommits);
 }
@@ -86,9 +165,7 @@ function renderCommits(commits) {
             <div class="commit" data-hash="${commit.hash}">
                 <div class="commit-hash">${commit.hash.slice(0, 7)}</div>
                 <div class="commit-message">${commit.message}</div>
-                <div class="commit-date">${new Date(
-                  commit.date
-                ).toLocaleDateString()}</div>
+                <div class="commit-date">${formatDate(commit.date)}</div>
             </div>
         `
     )
@@ -259,14 +336,16 @@ async function init() {
     const data = await fetchRepoData();
     allCommits = data.commits;
 
-    renderBranches(data.branches, data.current);
+    renderBranches(data.branches, data.current, data.remoteBranches);
     renderCommits(data.commits);
     updateCommitSelectors(data.commits);
 
     document.getElementById("repo-info").innerHTML = `
-            <div>Current Branch: ${data.current}</div>
-            <div>Total Branches: ${data.branches.length}</div>
-        `;
+      <div>Current Branch: ${data.current}</div>
+      <div>Total Branches: ${
+        data.branches.length + (data.remoteBranches?.length || 0)
+      }</div>
+    `;
 
     document
       .getElementById("compare-button")
