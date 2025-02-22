@@ -186,18 +186,15 @@ async function init() {
 const comparisonPanel = document.getElementById('comparison-panel');
 const comparisonHeader = document.querySelector('.comparison-header');
 
-// Add the dropdown button to the header
 const dropdownButton = document.createElement('button');
 dropdownButton.className = 'dropdown-button';
 dropdownButton.setAttribute('aria-label', 'Toggle comparison panel');
 comparisonHeader.appendChild(dropdownButton);
 
-// Update click handler to only work on the button
 dropdownButton.addEventListener('click', () => {
     comparisonPanel.classList.toggle('collapsed');
 });
 
-// Remove the old click handler from the header
 comparisonHeader.style.cursor = 'default';
 
 init();
