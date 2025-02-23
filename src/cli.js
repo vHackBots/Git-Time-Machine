@@ -96,7 +96,10 @@ async function validateGitRepo(repoPath) {
 
 async function getHelpText() {
   return [
-
+    "",
+    chalk.bold("Git Time Machine"),
+    chalk.dim("Interactive Git repository visualization tool"),
+    "",
     chalk.bold("Usage:"),
     `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan(
       "<repository-path>"
@@ -109,9 +112,9 @@ async function getHelpText() {
     `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ./my-project       ${chalk.dim(
       "Start with specific repository"
     )}`,
-    `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan("-p")} 8000 ./repo     ${chalk.dim(
-      "Start with custom port"
-    )}`,
+    `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan(
+      "-p"
+    )} 8000 ./repo     ${chalk.dim("Start with custom port")}`,
     "",
     chalk.bold("Options:"),
     `  ${chalk.cyan("-p, --port")} <number>    ${chalk.dim(
