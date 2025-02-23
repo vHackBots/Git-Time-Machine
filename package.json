@@ -22,7 +22,6 @@
     "ora": "^7.0.1",
     "simple-git": "^3.22.0"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vHackBots/Git-Time-Machine.git"
