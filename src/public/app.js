@@ -61,35 +61,26 @@ function renderTimeline(commits) {
     .map(
       (commit) => `
             <div class="commit" data-hash="${sanitizeHTML(commit.hash)}">
-                <div class="commit-hash">${
-        sanitizeHTML(
-          commit.hash.slice(0, 7),
-        )
-      }</div>
-                <div class="commit-message">${
-        sanitizeHTML(
-          commit.message,
-        )
-      }</div>
-                <div class="commit-author">${
-        sanitizeHTML(
-          commit.author_name,
-        )
-      }</div>
-                <div class="commit-date">${
-        sanitizeHTML(
-          formatDate(commit.date),
-        )
-      }</div>
+                <div class="commit-hash">${sanitizeHTML(
+                  commit.hash.slice(0, 7)
+                )}</div>
+                <div class="commit-message">${sanitizeHTML(
+                  commit.message
+                )}</div>
+                <div class="commit-author">${sanitizeHTML(
+                  commit.author_name
+                )}</div>
+                <div class="commit-date">${sanitizeHTML(
+                  formatDate(commit.date)
+                )}</div>
             </div>
-        `,
+        `
     )
     .join("");
 
   timeline.querySelectorAll(".commit").forEach((commitElement) => {
-    commitElement.addEventListener(
-      "click",
-      () => handleCommitClick(commitElement),
+    commitElement.addEventListener("click", () =>
+      handleCommitClick(commitElement)
     );
   });
 }
@@ -110,8 +101,8 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
       const branchColor = generateBranchColor(branch);
       return `
           <div class="branch-item ${
-        branch === currentBranchName ? "active" : ""
-      }" 
+            branch === currentBranchName ? "active" : ""
+          }" 
                data-branch="${sanitizeHTML(branch)}"
                style="color: ${branchColor}">
               ${sanitizeHTML(branch)}
@@ -124,11 +115,10 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
     ? `
       <div class="branch-section">
         <h3>Remote Branches</h3>
-        ${
-      remoteBranches
-        .map((branch) => {
-          const branchColor = generateBranchColor(branch.shortName);
-          return `
+        ${remoteBranches
+          .map((branch) => {
+            const branchColor = generateBranchColor(branch.shortName);
+            return `
                 <div class="branch-item remote" 
                      data-branch="${branch.fullName}"
                      data-remote="${branch.remote}"
@@ -137,9 +127,8 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
                        ${branch.remote}/${branch.shortName}
                 </div>
               `;
-        })
-        .join("")
-    }
+          })
+          .join("")}
       </div>
     `
     : "";
@@ -153,9 +142,8 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
   `;
 
   branchList.querySelectorAll(".branch-item").forEach((branchElement) => {
-    branchElement.addEventListener(
-      "click",
-      () => handleBranchClick(branchElement),
+    branchElement.addEventListener("click", () =>
+      handleBranchClick(branchElement)
     );
   });
 }
@@ -173,7 +161,7 @@ async function handleBranchClick(branchElement) {
     currentBranch = branchName;
 
     const response = await fetch(
-      `/api/branch-commits?branch=${encodeURIComponent(branchName)}`,
+      `/api/branch-commits?branch=${encodeURIComponent(branchName)}`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch branch commits");
@@ -190,7 +178,7 @@ async function handleBranchClick(branchElement) {
       try {
         const checkoutResponse = await fetch(
           `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
-          { method: "POST" },
+          { method: "POST" }
         );
 
         if (!checkoutResponse.ok) {
@@ -213,19 +201,87 @@ async function handleBranchClick(branchElement) {
   }
 }
 
+function convertGitEmoji(message) {
+  const emojiMap = {
+    ":lipstick:": "💄",
+    ":art:": "🎨",
+    ":zap:": "⚡️",
+    ":fire:": "🔥",
+    ":bug:": "🐛",
+    ":ambulance:": "🚑",
+    ":sparkles:": "✨",
+    ":memo:": "📝",
+    ":rocket:": "🚀",
+    ":package:": "📦",
+    ":tada:": "🎉",
+    ":white_check_mark:": "✅",
+    ":lock:": "🔒",
+    ":apple:": "🍎",
+    ":penguin:": "🐧",
+    ":robot:": "🤖",
+    ":green_heart:": "💚",
+    ":bookmark:": "🔖",
+    ":rotating_light:": "🚨",
+    ":construction:": "🚧",
+    ":green_apple:": "🍏",
+    ":arrow_down:": "⬇️",
+    ":arrow_up:": "⬆️",
+    ":construction_worker:": "👷",
+    ":chart_with_upwards_trend:": "📈",
+    ":hammer:": "🔨",
+    ":heavy_minus_sign:": "➖",
+    ":whale:": "🐳",
+    ":heavy_plus_sign:": "➕",
+    ":wrench:": "🔧",
+    ":globe_with_meridians:": "🌐",
+    ":pencil2:": "✏️",
+    ":rewind:": "⏪",
+    ":twisted_rightwards_arrows:": "🔀",
+    ":package:": "📦",
+    ":alien:": "👽",
+    ":truck:": "🚛",
+    ":page_facing_up:": "📄",
+    ":boom:": "💥",
+    ":bento:": "🍱",
+    ":wheelchair:": "♿️",
+    ":bulb:": "💡",
+    ":beers:": "🍻",
+    ":speech_balloon:": "💬",
+    ":card_file_box:": "🗃️",
+    ":loud_sound:": "🔊",
+    ":mute:": "🔇",
+    ":busts_in_silhouette:": "👥",
+    ":children_crossing:": "🚸",
+    ":building_construction:": "🏗️",
+    ":iphone:": "📱",
+    ":clown_face:": "🤡",
+    ":egg:": "🥚",
+    ":see_no_evil:": "🙈",
+    ":camera_flash:": "📸",
+    ":alembic:": "⚗️",
+    ":mag:": "🔍",
+    ":wheel_of_dharma:": "☸️",
+    ":label:": "🏷️",
+  };
+
+  return message.replace(/:[a-z_]+:/g, (match) => emojiMap[match] || match);
+}
+
 async function renderCommits(commits) {
   const timeline = document.querySelector(".commits-container");
 
-  const commitElements = await Promise.all(commits.map(async (commit) => {
-    const avatarUrl = await getAuthorAvatar(
-      commit.author_email,
-      commit.author_name,
-    );
+  const commitElements = await Promise.all(
+    commits.map(async (commit) => {
+      const avatarUrl = await getAuthorAvatar(
+        commit.author_email,
+        commit.author_name
+      );
+      const message = convertGitEmoji(commit.message); // Convert emoji shortcodes to actual emojis
 
-    return `
+      return `
       <div class="commit" data-hash="${commit.hash}">
         <div class="commit-hash">${commit.hash.slice(0, 7)}</div>
-        <div class="commit-message">${sanitizeHTML(commit.message)}</div>
+        <div class="commit-message">${sanitizeHTML(message)}</div>
         <div class="commit-info">
           <div class="commit-author-container">
             <img class="author-avatar" 
@@ -234,15 +290,15 @@ async function renderCommits(commits) {
                  loading="lazy">
             <div class="author-tooltip">
               <div class="author-tooltip-content">
-                <div class="author-name">${
-      sanitizeHTML(commit.author_name)
-    }</div>
-                <div class="author-email">${
-      sanitizeHTML(commit.author_email)
-    }</div>
-                <a href="https://github.com/${
-      sanitizeHTML(commit.author_name)
-    }" 
+                <div class="author-name">${sanitizeHTML(
+                  commit.author_name
+                )}</div>
+                <div class="author-email">${sanitizeHTML(
+                  commit.author_email
+                )}</div>
+                <a href="https://github.com/${sanitizeHTML(
+                  commit.author_name
+                )}" 
                    target="_blank" 
                    class="github-link">
                    View GitHub Profile
@@ -254,7 +310,8 @@ async function renderCommits(commits) {
         </div>
       </div>
     `;
-  }));
+    })
+  );
 
   timeline.innerHTML = commitElements.join("");
 }
@@ -269,10 +326,10 @@ function updateCommitSelectors(commits) {
     .map(
       (commit) => `
         <option value="${sanitizeHTML(commit.hash)}">
-            ${sanitizeHTML(commit.hash.slice(0, 7))} - ${
-        sanitizeHTML(commit.message)
-      }
-        </option>`,
+            ${sanitizeHTML(commit.hash.slice(0, 7))} - ${sanitizeHTML(
+        commit.message
+      )}
+        </option>`
     )
     .join("");
 
@@ -293,17 +350,15 @@ function handleCommitClick(commitElement) {
   if (!selectedCommits.first) {
     selectedCommits.first = hash;
     commitElement.classList.add("selected-first");
-    document.getElementById("first-commit").textContent = `First: ${
-      hash.slice(
-        0,
-        7,
-      )
-    }`;
+    document.getElementById("first-commit").textContent = `First: ${hash.slice(
+      0,
+      7
+    )}`;
   } else if (!selectedCommits.second) {
     selectedCommits.second = hash;
     commitElement.classList.add("selected-second");
     document.getElementById(
-      "second-commit",
+      "second-commit"
     ).textContent = `Second: ${hash.slice(0, 7)}`;
     document.getElementById("compare-button").disabled = false;
   }
@@ -328,15 +383,17 @@ async function handleCompare() {
   }
 
   try {
-    const response = await fetch(`/api/compare?from=${baseHash}&to=${compareHash}`);
+    const response = await fetch(
+      `/api/compare?from=${baseHash}&to=${compareHash}`
+    );
     const diff = await response.text();
     document.getElementById("diff-output").innerHTML = formatDiff(diff);
-    
+
     const panel = document.getElementById("comparison-panel");
     panel.classList.add("active");
     panel.classList.remove("collapsed");
     document.getElementById("panel-toggle").checked = true;
-    
+
     showToast("Comparison loaded successfully", "success");
   } catch (error) {
     console.error("Failed to compare commits:", error);
@@ -417,18 +474,15 @@ function formatDiffContent(content) {
     if (line.startsWith("+")) {
       newLineNo++;
       className += " addition";
-      lineNumbers =
-        `<span class="line-number old"></span><span class="line-number new">${newLineNo}</span>`;
+      lineNumbers = `<span class="line-number old"></span><span class="line-number new">${newLineNo}</span>`;
     } else if (line.startsWith("-")) {
       oldLineNo++;
       className += " deletion";
-      lineNumbers =
-        `<span class="line-number old">${oldLineNo}</span><span class="line-number new"></span>`;
+      lineNumbers = `<span class="line-number old">${oldLineNo}</span><span class="line-number new"></span>`;
     } else {
       oldLineNo++;
       newLineNo++;
-      lineNumbers =
-        `<span class="line-number old">${oldLineNo}</span><span class="line-number new">${newLineNo}</span>`;
+      lineNumbers = `<span class="line-number old">${oldLineNo}</span><span class="line-number new">${newLineNo}</span>`;
     }
 
     formattedLines.push(`
@@ -459,7 +513,7 @@ function parseDiffToFiles(diff) {
         files.push(currentFile);
       }
 
-      fileHeader = [line];  // Start new file headers
+      fileHeader = [line]; // Start new file headers
       const [_, pathA, pathB] = line.match(/diff --git a\/(.*) b\/(.*)/);
       currentFile = {
         name: pathB,
@@ -473,14 +527,16 @@ function parseDiffToFiles(diff) {
 
       // Collect all header information
       let j = i + 1;
-      while (j < lines.length && 
-             (lines[j].startsWith("new file") || 
-              lines[j].startsWith("deleted file") ||
-              lines[j].startsWith("old mode") ||
-              lines[j].startsWith("new mode") ||
-              lines[j].startsWith("rename from") ||
-              lines[j].startsWith("rename to") ||
-              lines[j].startsWith("index"))) {
+      while (
+        j < lines.length &&
+        (lines[j].startsWith("new file") ||
+          lines[j].startsWith("deleted file") ||
+          lines[j].startsWith("old mode") ||
+          lines[j].startsWith("new mode") ||
+          lines[j].startsWith("rename from") ||
+          lines[j].startsWith("rename to") ||
+          lines[j].startsWith("index"))
+      ) {
         fileHeader.push(lines[j]);
         j++;
       }
@@ -514,8 +570,8 @@ function formatDiff(diff) {
       const status = getFileStatus(file.content);
       const fileInfo = file.isBinary
         ? `<div class="diff-file-info">Binary file (${
-          file.fileType || "unknown"
-        } format)</div>`
+            file.fileType || "unknown"
+          } format)</div>`
         : `<div class="diff-stats">
          <span class="diff-added">+${file.additions}</span>
          <span class="diff-removed">-${file.deletions}</span>
@@ -524,21 +580,19 @@ function formatDiff(diff) {
       return `
       <div class="diff-file collapsed">
         <div class="diff-file-header" onclick="toggleDiffContent(this)">
-          <span class="file-status" style="color: ${
-        getStatusColor(
-          status,
-        )
-      }">[${status}]</span>
+          <span class="file-status" style="color: ${getStatusColor(
+            status
+          )}">[${status}]</span>
           <span class="diff-file-name">${file.name}</span>
           ${fileInfo}
           <span class="diff-collapse-icon">▼</span>
         </div>
         <div class="diff-file-content">
           ${
-        file.isBinary
-          ? `<div class="binary-message">Binary file changes cannot be displayed</div>`
-          : formatDiffContent(file.content)
-      }
+            file.isBinary
+              ? `<div class="binary-message">Binary file changes cannot be displayed</div>`
+              : formatDiffContent(file.content)
+          }
         </div>
       </div>`;
     })
@@ -581,8 +635,8 @@ async function init() {
     document.getElementById("repo-info").innerHTML = `
       <div>Current Branch: ${data.current}</div>
       <div>Total Branches: ${
-      data.branches.length + (data.remoteBranches?.length || 0)
-    }</div>
+        data.branches.length + (data.remoteBranches?.length || 0)
+      }</div>
     `;
 
     document
@@ -627,27 +681,29 @@ function createToastContainer() {
 }
 
 function showToast(message, type = "info") {
-  const container = document.getElementById("toast-container") ||
-    createToastContainer();
+  const container =
+    document.getElementById("toast-container") || createToastContainer();
 
   const toast = document.createElement("div");
   toast.className = "card toast";
 
-  const iconColor = type === "success"
-    ? "#28a745"
-    : type === "error"
-    ? "#dc3545"
-    : type === "warning"
-    ? "#ffc107"
-    : "#ffa30d";
+  const iconColor =
+    type === "success"
+      ? "#28a745"
+      : type === "error"
+      ? "#dc3545"
+      : type === "warning"
+      ? "#ffc107"
+      : "#ffa30d";
 
-  const bgColor = type === "success"
-    ? "#28a74548"
-    : type === "error"
-    ? "#dc354548"
-    : type === "warning"
-    ? "#f2b705"
-    : "#ffa30d";
+  const bgColor =
+    type === "success"
+      ? "#28a74548"
+      : type === "error"
+      ? "#dc354548"
+      : type === "warning"
+      ? "#f2b705"
+      : "#ffa30d";
 
   toast.innerHTML = `
     <div class="message-text-container">
@@ -679,9 +735,9 @@ function showToast(message, type = "info") {
 
 async function getAuthorAvatar(authorEmail, authorName) {
   const githubUrl = `https://github.com/${authorName}.png`;
-  const gravatarUrl = `https://www.gravatar.com/avatar/${
-    getMD5(authorEmail.trim().toLowerCase())
-  }?s=80&d=404`;
+  const gravatarUrl = `https://www.gravatar.com/avatar/${getMD5(
+    authorEmail.trim().toLowerCase()
+  )}?s=80&d=404`;
 
   return new Promise((resolve) => {
     const img = new Image();
@@ -699,12 +755,11 @@ async function getAuthorAvatar(authorEmail, authorName) {
   });
 }
 
-
 // MD5 Implementation from (minified) : https://css-tricks.com/snippets/javascript/javascript-md5/
 /******************************************** MD5************************************************/
 function getMD5(string) {
   function RotateLeft(lValue, iShiftBits) {
-    return lValue << iShiftBits | lValue >>> 32 - iShiftBits;
+    return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
   }
   function AddUnsigned(lX, lY) {
     var lX4, lY4, lX8, lY8, lResult;
@@ -720,10 +775,10 @@ function getMD5(string) {
     } else return lResult ^ lX8 ^ lY8;
   }
   function F(x, y, z) {
-    return x & y | ~x & z;
+    return (x & y) | (~x & z);
   }
   function G(x, y, z) {
-    return x & z | y & ~z;
+    return (x & z) | (y & ~z);
   }
   function H(x, y, z) {
     return x ^ y ^ z;
@@ -752,31 +807,36 @@ function getMD5(string) {
     var lMessageLength = string.length;
     var lNumberOfWords_temp1 = lMessageLength + 8;
     var lNumberOfWords_temp2 =
-      (lNumberOfWords_temp1 - lNumberOfWords_temp1 % 64) / 64;
+      (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
     var lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
     var lWordArray = Array(lNumberOfWords - 1);
     var lBytePosition = 0;
     var lByteCount = 0;
     while (lByteCount < lMessageLength) {
-      lWordCount = (lByteCount - lByteCount % 4) / 4;
-      lBytePosition = lByteCount % 4 * 8;
-      lWordArray[lWordCount] = lWordArray[lWordCount] |
-        string.charCodeAt(lByteCount) << lBytePosition;
+      lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+      lBytePosition = (lByteCount % 4) * 8;
+      lWordArray[lWordCount] =
+        lWordArray[lWordCount] |
+        (string.charCodeAt(lByteCount) << lBytePosition);
       lByteCount++;
     }
-    lWordCount = (lByteCount - lByteCount % 4) / 4;
-    lBytePosition = lByteCount % 4 * 8;
-    lWordArray[lWordCount] = lWordArray[lWordCount] | 128 << lBytePosition;
+    lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+    lBytePosition = (lByteCount % 4) * 8;
+    lWordArray[lWordCount] = lWordArray[lWordCount] | (128 << lBytePosition);
     lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
     lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
     return lWordArray;
   }
   function WordToHex(lValue) {
-    var WordToHexValue = "", WordToHexValue_temp = "", lByte, lCount;
+    var WordToHexValue = "",
+      WordToHexValue_temp = "",
+      lByte,
+      lCount;
     for (lCount = 0; lCount <= 3; lCount++) {
-      lByte = lValue >>> lCount * 8 & 255;
+      lByte = (lValue >>> (lCount * 8)) & 255;
       WordToHexValue_temp = "0" + lByte.toString(16);
-      WordToHexValue = WordToHexValue +
+      WordToHexValue =
+        WordToHexValue +
         WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
     }
     return WordToHexValue;
@@ -788,22 +848,34 @@ function getMD5(string) {
       var c = string.charCodeAt(n);
       if (c < 128) utftext += String.fromCharCode(c);
       else if (c > 127 && c < 2048) {
-        utftext += String.fromCharCode(c >> 6 | 192);
-        utftext += String.fromCharCode(c & 63 | 128);
+        utftext += String.fromCharCode((c >> 6) | 192);
+        utftext += String.fromCharCode((c & 63) | 128);
       } else {
-        utftext += String.fromCharCode(c >> 12 | 224);
-        utftext += String.fromCharCode(c >> 6 & 63 | 128);
-        utftext += String.fromCharCode(c & 63 | 128);
+        utftext += String.fromCharCode((c >> 12) | 224);
+        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+        utftext += String.fromCharCode((c & 63) | 128);
       }
     }
     return utftext;
   }
   var x = Array();
   var k, AA, BB, CC, DD, a, b, c, d;
-  var S11 = 7, S12 = 12, S13 = 17, S14 = 22;
-  var S21 = 5, S22 = 9, S23 = 14, S24 = 20;
-  var S31 = 4, S32 = 11, S33 = 16, S34 = 23;
-  var S41 = 6, S42 = 10, S43 = 15, S44 = 21;
+  var S11 = 7,
+    S12 = 12,
+    S13 = 17,
+    S14 = 22;
+  var S21 = 5,
+    S22 = 9,
+    S23 = 14,
+    S24 = 20;
+  var S31 = 4,
+    S32 = 11,
+    S33 = 16,
+    S34 = 23;
+  var S41 = 6,
+    S42 = 10,
+    S43 = 15,
+    S44 = 21;
   string = Utf8Encode(string);
   x = ConvertToWordArray(string);
   a = 1732584193;
