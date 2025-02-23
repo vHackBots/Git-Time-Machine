@@ -211,8 +211,9 @@ header h1 {
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--glass-border);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 95vh;
+  height: 75vh;
   transform: translateY(calc(100% - 45px));
+  max-height: calc(100vh - 100px);
 }
 
 #comparison-panel.collapsed {

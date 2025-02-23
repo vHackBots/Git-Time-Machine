@@ -1,4 +1,4 @@
-const simpleGit = require("simple-git");
+import simpleGit from 'simple-git';
 
 async function getRepoData() {
   const git = simpleGit();
@@ -189,7 +189,7 @@ async function checkoutRemoteBranch(branchName) {
   }
 }
 
-module.exports = {
+export {
   getRepoData,
   getBranchCommits,
   compareCommits,

@@ -328,12 +328,15 @@ async function handleCompare() {
   }
 
   try {
-    const response = await fetch(
-      `/api/compare?from=${baseHash}&to=${compareHash}`,
-    );
+    const response = await fetch(`/api/compare?from=${baseHash}&to=${compareHash}`);
     const diff = await response.text();
     document.getElementById("diff-output").innerHTML = formatDiff(diff);
-    document.getElementById("comparison-panel").classList.add("active");
+    
+    const panel = document.getElementById("comparison-panel");
+    panel.classList.add("active");
+    panel.classList.remove("collapsed");
+    document.getElementById("panel-toggle").checked = true;
+    
     showToast("Comparison loaded successfully", "success");
   } catch (error) {
     console.error("Failed to compare commits:", error);

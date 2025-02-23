@@ -1,11 +1,16 @@
-const express = require("express");
-const path = require("path");
-const {
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import {
   getRepoData,
   compareCommits,
   checkoutRemoteBranch,
   getBranchCommits,
-} = require("./git");
+} from './git.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -72,8 +77,8 @@ function startServer(port) {
   return new Promise((resolve, reject) => {
     const server = app.listen(port, async () => {
       try {
-        const openModule = await import("open");
-        await openModule.default(`http://localhost:${port}`);
+        const { default: open } = await import('open');
+        await open(`http://localhost:${port}`);
         resolve(port);
       } catch (error) {
         console.warn("Failed to open browser automatically.");
@@ -95,4 +100,4 @@ function startServer(port) {
   });
 }
 
-module.exports = { startServer };
+export { startServer };
