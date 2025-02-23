@@ -7,8 +7,7 @@
     "git-tm": "./src/cli.js"
   },
   "scripts": {
-    "start": "node src/cli.js",
-    "dev": "nodemon src/cli.js"
+    "start": "node src/cli.js"
   },
   "type": "module",
   "dependencies": {

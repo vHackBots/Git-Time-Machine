@@ -2,7 +2,7 @@
 
 **A powerful tool to visualize, analyze, and manage the evolution of your GitHub repositories.**
 
-Built for [FOSS Hack 2025](https://fossunited.org/fosshack), GitHub Time Machine empowers developers to travel through their codebase history, debug with ease, and collaborate seamlessly. Whether you're auditing changes, resolving conflicts, or understanding project growth, this tool has you covered—all while staying true to the spirit of free and open-source software.
+Built for [FOSS Hack 2025](https://fossunited.org/fosshack/2025), Git Time Machine empowers developers to travel through their codebase history, debug with ease, and collaborate seamlessly. Whether you're auditing changes, resolving conflicts, or understanding project growth, this tool has you covered—all while staying true to the spirit of free and open-source software.
 
 ---
 
@@ -26,7 +26,7 @@ Built for [FOSS Hack 2025](https://fossunited.org/fosshack), GitHub Time Machine
 
 ---
 
-## Why GitHub Time Machine?
+## Why Git Time Machine?
 
 - **Debugging Made Easy**: Pinpoint when and where bugs were introduced by exploring historical changes.
 - **Audit with Confidence**: Track every change for compliance or project reviews.
