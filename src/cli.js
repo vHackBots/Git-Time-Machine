@@ -12,6 +12,7 @@ import { startServer } from "./server.js";
 import ora from "ora";
 import figlet from "figlet";
 import { promisify } from "util";
+import gradient from "gradient-string";
 
 const figletPromise = promisify(figlet);
 const __filename = fileURLToPath(import.meta.url);
@@ -32,7 +33,8 @@ async function displayBanner() {
     whitespaceBreak: true,
   });
 
-  console.log(banner);
+  const bannerGradient = gradient(GIT_ORANGE, WHITE);
+  console.log(bannerGradient(banner));
 }
 
 function createSpinner(text) {
@@ -81,6 +83,7 @@ async function validateGitRepo(repoPath) {
 }
 
 const helpText = [
+  await displayBanner(),
   chalk.bold("Usage:"),
   `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan(
     "<repository-path>"
@@ -121,14 +124,14 @@ function createBox(content, options = {}) {
     margin: {
       top: 1,
       bottom: 1,
-      left: Math.floor((terminalWidth - boxWidth) / 2),
+      left: 2,
       right: 0,
     },
     borderStyle: "round",
     borderColor: "cyan",
     width: boxWidth,
     textAlignment: "center",
-    float: "center",
+    float: "left",
     ...options,
   });
 }
@@ -142,10 +145,13 @@ program
     "port to run the server on",
     DEFAULT_PORT.toString()
   )
-  .addHelpText("after", "\n" + helpText + "\n")
-  .showHelpAfterError(true)
+  .helpOption(false)
+  .addOption(new program.Option("-h, --help", "display help").hideHelp())
   .action(async (repoPath, options) => {
-    await displayBanner();
+    if (options.help) {
+      console.log(helpText + "\n");
+      process.exit(0);
+    }
     const fullPath = await validateGitRepo(repoPath);
     process.chdir(fullPath);
 
@@ -171,9 +177,7 @@ program
             chalk.cyan("🎉 Ready to explore your Git history!"),
             "",
             chalk.dim("Press Ctrl+C to stop the server"),
-          ]
-            .map((line) => centerAlign(line, { columns: 60 }))
-            .join("\n")
+          ].join("\n") 
         )
       );
 
@@ -193,7 +197,6 @@ program
   })
   .exitOverride(async (err) => {
     if (err.code === "commander.missingArgument") {
-      await displayBanner();
       console.log(helpText + "\n");
       process.exit(1);
     }
