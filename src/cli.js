@@ -11,13 +11,19 @@ import { dirname } from "path";
 import { startServer } from "./server.js";
 import ora from "ora";
 import figlet from "figlet";
-import { promisify } from "util";
 import gradient from "gradient-string";
+import { readFile } from 'fs/promises';
 
-const figletPromise = promisify(figlet);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const packageJson = JSON.parse(
+  await readFile(
+    new URL('../package.json', import.meta.url)
+  )
+);
+
+const VERSION = packageJson.version;
 const DEFAULT_PORT = 7890;
 const GIT_ORANGE = "#e84d31";
 const WHITE = "#ffffff";
@@ -25,12 +31,20 @@ const WHITE = "#ffffff";
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function displayBanner() {
-  const banner = await figletPromise("Git Time Machine", {
-    font: "Standard",
-    horizontalLayout: "default",
-    verticalLayout: "default",
-    width: 80,
-    whitespaceBreak: true,
+  const banner = await new Promise((resolve, reject) => {
+    figlet("Git Time Machine", {
+      font: "Standard",
+      horizontalLayout: "default",
+      verticalLayout: "default",
+      width: 80,
+      whitespaceBreak: true,
+    }, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data);
+    });
   });
 
   const bannerGradient = gradient(GIT_ORANGE, WHITE);
@@ -50,7 +64,7 @@ function createSpinner(text) {
 async function showErrorAndHelp(errorMessage, exitCode = 1) {
   await displayBanner();
   console.log(chalk.yellow(`⚠️  Error: ${errorMessage}\n`));
-  console.log(helpText + "\n");
+  console.log(await getHelpText() + "\n");
   console.log(chalk.red("Exiting...\n"));
   process.exit(exitCode);
 }
@@ -82,38 +96,40 @@ async function validateGitRepo(repoPath) {
   return fullPath;
 }
 
-const helpText = [
-  await displayBanner(),
-  chalk.bold("Usage:"),
-  `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan(
-    "<repository-path>"
-  )} [options]`,
-  "",
-  chalk.bold("Examples:"),
-  `  $ ${chalk.hex(GIT_ORANGE)("git-tm .")}                  ${chalk.dim(
-    "Start with current directory"
-  )}`,
-  `  $ ${chalk.hex(GIT_ORANGE)("git-tm ./my-project")}       ${chalk.dim(
-    "Start with specific repository"
-  )}`,
-  `  $ ${chalk.hex(GIT_ORANGE)("git-tm -p 8000 ./repo")}     ${chalk.dim(
-    "Start with custom port"
-  )}`,
-  "",
-  chalk.bold("Options:"),
-  `  ${chalk.cyan("-p, --port")} <number>    ${chalk.dim(
-    "Port to run the server (default: " + DEFAULT_PORT + ")"
-  )}`,
-  `  ${chalk.cyan("-h, --help")}             ${chalk.dim(
-    "Display this help message"
-  )}`,
-  `  ${chalk.cyan("-V, --version")}          ${chalk.dim(
-    "Output the version number"
-  )}`,
-  "",
-  chalk.bold("More Info:"),
-  `  ${chalk.blue("https://github.com/vHackBots/Git-Time-Machine")}`,
-].join("\n");
+async function getHelpText() {
+  return [
+    await displayBanner(),
+    chalk.bold("Usage:"),
+    `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan(
+      "<repository-path>"
+    )} [options]`,
+    "",
+    chalk.bold("Examples:"),
+    `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} .                  ${chalk.dim(
+      "Start with current directory"
+    )}`,
+    `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ./my-project       ${chalk.dim(
+      "Start with specific repository"
+    )}`,
+    `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan("-p")} 8000 ./repo     ${chalk.dim(
+      "Start with custom port"
+    )}`,
+    "",
+    chalk.bold("Options:"),
+    `  ${chalk.cyan("-p, --port")} <number>    ${chalk.dim(
+      "Port to run the server (default: " + DEFAULT_PORT + ")"
+    )}`,
+    `  ${chalk.cyan("-h, --help")}             ${chalk.dim(
+      "Display this help message"
+    )}`,
+    `  ${chalk.cyan("-V, --version")}          ${chalk.dim(
+      "Output the version number"
+    )}`,
+    "",
+    chalk.bold("More Info:"),
+    `  ${chalk.blue("https://github.com/vHackBots/Git-Time-Machine")}`,
+  ].join("\n");
+}
 
 function createBox(content, options = {}) {
   const terminalWidth = process.stdout.columns || 80;
@@ -130,16 +146,22 @@ function createBox(content, options = {}) {
     borderStyle: "round",
     borderColor: "cyan",
     width: boxWidth,
-    textAlignment: "center",
+    textAlignment: "left",
     float: "left",
     ...options,
   });
 }
 
+if (process.argv.includes('-v') || process.argv.includes('--version')) {
+  console.log("\n"+chalk.hex("#e84d31")("git-tm") + ` version: ${chalk.cyan(VERSION)}`);
+  process.exit(0);
+}
+
 program
   .name("git-tm")
   .description("Interactive Git repository visualization tool")
-  .argument("<repo-path>", "path to git repository")
+  .version(VERSION, '-v, --version', 'Output the current version')
+  .argument("[repo-path]", "path to git repository")
   .option(
     "-p, --port <number>",
     "port to run the server on",
@@ -149,9 +171,17 @@ program
   .addOption(new program.Option("-h, --help", "display help").hideHelp())
   .action(async (repoPath, options) => {
     if (options.help) {
-      console.log(helpText + "\n");
+      console.log(await getHelpText() + "\n");
       process.exit(0);
     }
+    if (!repoPath) {
+      console.log(await getHelpText() + '\n');
+      process.exit(0);
+    }
+
+    await displayBanner();
+    console.log();
+    
     const fullPath = await validateGitRepo(repoPath);
     process.chdir(fullPath);
 
@@ -174,8 +204,6 @@ program
             )}`,
             `${chalk.white("Port:")} ${chalk.cyan(port)}`,
             "",
-            chalk.cyan("🎉 Ready to explore your Git history!"),
-            "",
             chalk.dim("Press Ctrl+C to stop the server"),
           ].join("\n") 
         )
@@ -197,7 +225,7 @@ program
   })
   .exitOverride(async (err) => {
     if (err.code === "commander.missingArgument") {
-      console.log(helpText + "\n");
+      console.log(await getHelpText() + "\n");
       process.exit(1);
     }
     throw err;
