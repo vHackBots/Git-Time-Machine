@@ -177,10 +177,6 @@ program
         )
       );
 
-      const centerMessage = (msg) =>
-        console.log(centerAlign(msg, { columns: process.stdout.columns }));
-
-      centerMessage(chalk.dim("Launching browser in 2 seconds..."));
       await sleep(5000);
 
       process.on("SIGINT", async () => {
