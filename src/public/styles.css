@@ -113,7 +113,7 @@ header h1 {
   border: 1px solid var(--glass-border);
   background: var(--bg-card);
   display: grid;
-  grid-template-columns: 80px 1fr 150px;
+  grid-template-columns: 80px 1fr auto;
   gap: 12px;
   align-items: center;
   cursor: pointer;
@@ -121,13 +121,15 @@ header h1 {
   color: var(--text-primary);
   backdrop-filter: blur(10px);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 1;
 }
 
 .commit:hover {
   background: rgba(30, 41, 59, 0.9);
   transform: translateX(2px);
   border: 1px solid var(--primary-blue);
+  z-index: 2;
 }
 
 .commit::before {
@@ -180,6 +182,18 @@ header h1 {
   white-space: nowrap;
   font-family: monospace;
   min-width: 200px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+}
+
+.commit-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  position: relative;
+  z-index: 2;
 }
 
 #comparison-panel {
@@ -396,6 +410,17 @@ header h1 {
   scrollbar-color: var(--glass-border) transparent;
 }
 
+.commits-container {
+  margin-top: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 360px);
+  padding-right: 16px;
+  padding-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
 .branch-list {
   margin-top: 10px;
 }
@@ -469,6 +494,8 @@ header h1 {
   max-height: calc(100vh - 360px);
   padding-right: 16px;
   padding-bottom: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .comparison-header {
@@ -502,6 +529,25 @@ header h1 {
   background: var(--bg-card);
   color: var(--text-primary);
   backdrop-filter: blur(10px);
+}
+
+.commit-select option {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  padding: 8px 12px;
+}
+
+.commit-select option:hover,
+.commit-select option:focus,
+.commit-select option:active {
+  background: var(--bg-dark) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+}
+
+.commit-select option:checked {
+  background: var(--primary-blue);
+  color: white;
 }
 
 .branch-info {
@@ -1105,4 +1151,78 @@ h3 {
   height: 18px;
   color: #555;
   cursor: pointer;
+}
+
+.commit-author-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.author-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  border: 2px solid var(--glass-border);
+}
+
+.author-avatar:hover {
+  transform: scale(1.1);
+  border-color: var(--primary-blue);
+}
+
+.author-tooltip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 5px);
+  background: var(--bg-dark);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 250px;
+  backdrop-filter: blur(10px);
+  z-index: 100000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.commit-author-container:hover .author-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.author-tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.author-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.author-email {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.github-link {
+  color: var(--primary-blue);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+.github-link:hover {
+  text-decoration: underline;
 }

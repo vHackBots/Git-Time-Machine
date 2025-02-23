@@ -158,8 +158,6 @@ async function getBranchCommits(branchName) {
 async function compareCommits(commit1, commit2) {
   const git = simpleGit();
   try {
-    // Add --binary flag to show binary file differences
-    // Use -p for patch format and --no-color for raw output
     const diff = await git.raw([
       "diff",
       "--binary",

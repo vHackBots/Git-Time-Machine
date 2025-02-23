@@ -61,26 +61,35 @@ function renderTimeline(commits) {
     .map(
       (commit) => `
             <div class="commit" data-hash="${sanitizeHTML(commit.hash)}">
-                <div class="commit-hash">${sanitizeHTML(
-                  commit.hash.slice(0, 7)
-                )}</div>
-                <div class="commit-message">${sanitizeHTML(
-                  commit.message
-                )}</div>
-                <div class="commit-author">${sanitizeHTML(
-                  commit.author_name
-                )}</div>
-                <div class="commit-date">${sanitizeHTML(
-                  formatDate(commit.date)
-                )}</div>
+                <div class="commit-hash">${
+        sanitizeHTML(
+          commit.hash.slice(0, 7),
+        )
+      }</div>
+                <div class="commit-message">${
+        sanitizeHTML(
+          commit.message,
+        )
+      }</div>
+                <div class="commit-author">${
+        sanitizeHTML(
+          commit.author_name,
+        )
+      }</div>
+                <div class="commit-date">${
+        sanitizeHTML(
+          formatDate(commit.date),
+        )
+      }</div>
             </div>
-        `
+        `,
     )
     .join("");
 
   timeline.querySelectorAll(".commit").forEach((commitElement) => {
-    commitElement.addEventListener("click", () =>
-      handleCommitClick(commitElement)
+    commitElement.addEventListener(
+      "click",
+      () => handleCommitClick(commitElement),
     );
   });
 }
@@ -101,8 +110,8 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
       const branchColor = generateBranchColor(branch);
       return `
           <div class="branch-item ${
-            branch === currentBranchName ? "active" : ""
-          }" 
+        branch === currentBranchName ? "active" : ""
+      }" 
                data-branch="${sanitizeHTML(branch)}"
                style="color: ${branchColor}">
               ${sanitizeHTML(branch)}
@@ -115,10 +124,11 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
     ? `
       <div class="branch-section">
         <h3>Remote Branches</h3>
-        ${remoteBranches
-          .map((branch) => {
-            const branchColor = generateBranchColor(branch.shortName);
-            return `
+        ${
+      remoteBranches
+        .map((branch) => {
+          const branchColor = generateBranchColor(branch.shortName);
+          return `
                 <div class="branch-item remote" 
                      data-branch="${branch.fullName}"
                      data-remote="${branch.remote}"
@@ -127,8 +137,9 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
                        ${branch.remote}/${branch.shortName}
                 </div>
               `;
-          })
-          .join("")}
+        })
+        .join("")
+    }
       </div>
     `
     : "";
@@ -142,8 +153,9 @@ function renderBranches(branches, currentBranchName, remoteBranches) {
   `;
 
   branchList.querySelectorAll(".branch-item").forEach((branchElement) => {
-    branchElement.addEventListener("click", () =>
-      handleBranchClick(branchElement)
+    branchElement.addEventListener(
+      "click",
+      () => handleBranchClick(branchElement),
     );
   });
 }
@@ -161,7 +173,7 @@ async function handleBranchClick(branchElement) {
     currentBranch = branchName;
 
     const response = await fetch(
-      `/api/branch-commits?branch=${encodeURIComponent(branchName)}`
+      `/api/branch-commits?branch=${encodeURIComponent(branchName)}`,
     );
     if (!response.ok) {
       throw new Error("Failed to fetch branch commits");
@@ -171,11 +183,14 @@ async function handleBranchClick(branchElement) {
     renderCommits(branchCommits);
     updateCommitSelectors(branchCommits);
 
+    clearSelection();
+    document.getElementById("comparison-panel").classList.add("collapsed");
+
     if (isRemote) {
       try {
         const checkoutResponse = await fetch(
           `/api/checkout-remote?branchName=${encodeURIComponent(branchName)}`,
-          { method: "POST" }
+          { method: "POST" },
         );
 
         if (!checkoutResponse.ok) {
@@ -198,39 +213,74 @@ async function handleBranchClick(branchElement) {
   }
 }
 
-function renderCommits(commits) {
+async function renderCommits(commits) {
   const timeline = document.querySelector(".commits-container");
-  timeline.innerHTML = commits
-    .map(
-      (commit) => `
-            <div class="commit" data-hash="${commit.hash}">
-                <div class="commit-hash">${commit.hash.slice(0, 7)}</div>
-                <div class="commit-message">${commit.message}</div>
-                <div class="commit-date">${formatDate(commit.date)}</div>
+
+  const commitElements = await Promise.all(commits.map(async (commit) => {
+    const avatarUrl = await getAuthorAvatar(
+      commit.author_email,
+      commit.author_name,
+    );
+
+    return `
+      <div class="commit" data-hash="${commit.hash}">
+        <div class="commit-hash">${commit.hash.slice(0, 7)}</div>
+        <div class="commit-message">${sanitizeHTML(commit.message)}</div>
+        <div class="commit-info">
+          <div class="commit-author-container">
+            <img class="author-avatar" 
+                 src="${avatarUrl}" 
+                 alt="${sanitizeHTML(commit.author_name)}"
+                 loading="lazy">
+            <div class="author-tooltip">
+              <div class="author-tooltip-content">
+                <div class="author-name">${
+      sanitizeHTML(commit.author_name)
+    }</div>
+                <div class="author-email">${
+      sanitizeHTML(commit.author_email)
+    }</div>
+                <a href="https://github.com/${
+      sanitizeHTML(commit.author_name)
+    }" 
+                   target="_blank" 
+                   class="github-link">
+                   View GitHub Profile
+                </a>
+              </div>
             </div>
-        `
-    )
-    .join("");
+          </div>
+          <span class="commit-date">${formatDate(commit.date)}</span>
+        </div>
+      </div>
+    `;
+  }));
+
+  timeline.innerHTML = commitElements.join("");
 }
 
 function updateCommitSelectors(commits) {
   const baseSelect = document.getElementById("base-commit-select");
   const compareSelect = document.getElementById("compare-commit-select");
 
+  const emptyOption = '<option value="">Select a commit</option>';
+
   const options = commits
     .map(
       (commit) => `
-            <option value="${sanitizeHTML(commit.hash)}">
-                ${sanitizeHTML(commit.hash.slice(0, 7))} - ${sanitizeHTML(
-        commit.message
-      )}
-            </option>
-        `
+        <option value="${sanitizeHTML(commit.hash)}">
+            ${sanitizeHTML(commit.hash.slice(0, 7))} - ${
+        sanitizeHTML(commit.message)
+      }
+        </option>`,
     )
     .join("");
 
-  baseSelect.innerHTML = options;
-  compareSelect.innerHTML = options;
+  baseSelect.innerHTML = emptyOption + options;
+  compareSelect.innerHTML = emptyOption + options;
+
+  baseSelect.selectedIndex = 0;
+  compareSelect.selectedIndex = 0;
 }
 
 function handleCommitClick(commitElement) {
@@ -243,15 +293,17 @@ function handleCommitClick(commitElement) {
   if (!selectedCommits.first) {
     selectedCommits.first = hash;
     commitElement.classList.add("selected-first");
-    document.getElementById("first-commit").textContent = `First: ${hash.slice(
-      0,
-      7
-    )}`;
+    document.getElementById("first-commit").textContent = `First: ${
+      hash.slice(
+        0,
+        7,
+      )
+    }`;
   } else if (!selectedCommits.second) {
     selectedCommits.second = hash;
     commitElement.classList.add("selected-second");
     document.getElementById(
-      "second-commit"
+      "second-commit",
     ).textContent = `Second: ${hash.slice(0, 7)}`;
     document.getElementById("compare-button").disabled = false;
   }
@@ -265,6 +317,11 @@ async function handleCompare() {
   const baseHash = document.getElementById("base-commit-select").value;
   const compareHash = document.getElementById("compare-commit-select").value;
 
+  if (!baseHash || !compareHash) {
+    showToast("Please select both commits to compare", "warning");
+    return;
+  }
+
   if (baseHash === compareHash) {
     showToast("Please select different commits to compare", "warning");
     return;
@@ -272,7 +329,7 @@ async function handleCompare() {
 
   try {
     const response = await fetch(
-      `/api/compare?from=${baseHash}&to=${compareHash}`
+      `/api/compare?from=${baseHash}&to=${compareHash}`,
     );
     const diff = await response.text();
     document.getElementById("diff-output").innerHTML = formatDiff(diff);
@@ -356,15 +413,18 @@ function formatDiffContent(content) {
     if (line.startsWith("+")) {
       newLineNo++;
       className += " addition";
-      lineNumbers = `<span class="line-number old"></span><span class="line-number new">${newLineNo}</span>`;
+      lineNumbers =
+        `<span class="line-number old"></span><span class="line-number new">${newLineNo}</span>`;
     } else if (line.startsWith("-")) {
       oldLineNo++;
       className += " deletion";
-      lineNumbers = `<span class="line-number old">${oldLineNo}</span><span class="line-number new"></span>`;
+      lineNumbers =
+        `<span class="line-number old">${oldLineNo}</span><span class="line-number new"></span>`;
     } else {
       oldLineNo++;
       newLineNo++;
-      lineNumbers = `<span class="line-number old">${oldLineNo}</span><span class="line-number new">${newLineNo}</span>`;
+      lineNumbers =
+        `<span class="line-number old">${oldLineNo}</span><span class="line-number new">${newLineNo}</span>`;
     }
 
     formattedLines.push(`
@@ -461,8 +521,8 @@ function formatDiff(diff) {
       const status = getFileStatus(file.content);
       const fileInfo = file.isBinary
         ? `<div class="diff-file-info">Binary file (${
-            file.fileType || "unknown"
-          } format)</div>`
+          file.fileType || "unknown"
+        } format)</div>`
         : `<div class="diff-stats">
          <span class="diff-added">+${file.additions}</span>
          <span class="diff-removed">-${file.deletions}</span>
@@ -471,19 +531,21 @@ function formatDiff(diff) {
       return `
       <div class="diff-file collapsed">
         <div class="diff-file-header" onclick="toggleDiffContent(this)">
-          <span class="file-status" style="color: ${getStatusColor(
-            status
-          )}">[${status}]</span>
+          <span class="file-status" style="color: ${
+        getStatusColor(
+          status,
+        )
+      }">[${status}]</span>
           <span class="diff-file-name">${file.name}</span>
           ${fileInfo}
           <span class="diff-collapse-icon">▼</span>
         </div>
         <div class="diff-file-content">
           ${
-            file.isBinary
-              ? `<div class="binary-message">Binary file changes cannot be displayed</div>`
-              : formatDiffContent(file.content)
-          }
+        file.isBinary
+          ? `<div class="binary-message">Binary file changes cannot be displayed</div>`
+          : formatDiffContent(file.content)
+      }
         </div>
       </div>`;
     })
@@ -526,8 +588,8 @@ async function init() {
     document.getElementById("repo-info").innerHTML = `
       <div>Current Branch: ${data.current}</div>
       <div>Total Branches: ${
-        data.branches.length + (data.remoteBranches?.length || 0)
-      }</div>
+      data.branches.length + (data.remoteBranches?.length || 0)
+    }</div>
     `;
 
     document
@@ -572,39 +634,29 @@ function createToastContainer() {
 }
 
 function showToast(message, type = "info") {
-  const container =
-    document.getElementById("toast-container") || createToastContainer();
+  const container = document.getElementById("toast-container") ||
+    createToastContainer();
 
   const toast = document.createElement("div");
   toast.className = "card toast";
 
-  const iconColor =
-    type === "success"
-      ? "#28a745"
-      : type === "error"
-      ? "#dc3545"
-      : type === "warning"
-      ? "#ffc107"
-      : "#ffa30d";
+  const iconColor = type === "success"
+    ? "#28a745"
+    : type === "error"
+    ? "#dc3545"
+    : type === "warning"
+    ? "#ffc107"
+    : "#ffa30d";
 
-  const bgColor =
-    type === "success"
-      ? "#28a74548"
-      : type === "error"
-      ? "#dc354548"
-      : type === "warning"
-      ? "#f2b705"
-      : "#ffa30d";
+  const bgColor = type === "success"
+    ? "#28a74548"
+    : type === "error"
+    ? "#dc354548"
+    : type === "warning"
+    ? "#f2b705"
+    : "#ffa30d";
 
   toast.innerHTML = `
-    <svg class="wave" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
-      <path fill="${iconColor}" d="M0,256L11.4,240C22.9,224,46,192,69,192C91.4,192,114,224,137,234.7C160,245,183,235,206,213.3C228.6,192,251,160,274,149.3C297.1,139,320,149,343,181.3C365.7,213,389,267,411,282.7C434.3,299,457,277,480,250.7C502.9,224,526,192,549,181.3C571.4,171,594,181,617,208C640,235,663,277,686,256C708.6,235,731,149,754,122.7C777.1,96,800,128,823,165.3C845.7,203,869,245,891,224C914.3,203,937,117,960,112C982.9,107,1006,181,1029,197.3C1051.4,213,1074,171,1097,144C1120,117,1143,107,1166,133.3C1188.6,160,1211,224,1234,218.7C1257.1,213,1280,139,1303,133.3C1325.7,128,1349,192,1371,192C1394.3,192,1417,128,1429,96L1440,64L1440,320L1428.6,320C1417.1,320,1394,320,1371,320C1348.6,320,1326,320,1303,320C1280,320,1257,320,1234,320C1211.4,320,1189,320,1166,320C1142.9,320,1120,320,1097,320C1074.3,320,1051,320,1029,320C1005.7,320,983,320,960,320C937.1,320,914,320,891,320C868.6,320,846,320,823,320C800,320,777,320,754,320C731.4,320,709,320,686,320C662.9,320,640,320,617,320C594.3,320,571,320,549,320C525.7,320,503,320,480,320C457.1,320,434,320,411,320C388.6,320,366,320,343,320C320,320,297,320,274,320C251.4,320,229,320,206,320C182.9,320,160,320,137,320C114.3,320,91,320,69,320C45.7,320,23,320,11,320L0,320Z" fill-opacity="0.2"></path>
-    </svg>
-    <div class="icon-container" style="background-color: ${bgColor}">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="icon" style="color: ${iconColor}">
-        <path d="M236.8,188.09L149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8ZM120,144V104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,180Z"></path>
-      </svg>
-    </div>
     <div class="message-text-container">
       <p class="message-text" style="color: ${iconColor}">${message}</p>
     </div>
@@ -631,3 +683,215 @@ function showToast(message, type = "info") {
     }
   }, 2000);
 }
+
+async function getAuthorAvatar(authorEmail, authorName) {
+  const githubUrl = `https://github.com/${authorName}.png`;
+  const gravatarUrl = `https://www.gravatar.com/avatar/${
+    getMD5(authorEmail.trim().toLowerCase())
+  }?s=80&d=404`;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+
+    img.onload = () => resolve(githubUrl);
+    img.onerror = () => {
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => resolve(gravatarUrl);
+      fallbackImg.onerror = () => {
+        resolve(`https://www.gravatar.com/avatar/404?s=80&d=identicon`);
+      };
+      fallbackImg.src = gravatarUrl;
+    };
+    img.src = githubUrl;
+  });
+}
+
+
+// MD5 Implementation from (minified) : https://css-tricks.com/snippets/javascript/javascript-md5/
+/******************************************** MD5************************************************/
+function getMD5(string) {
+  function RotateLeft(lValue, iShiftBits) {
+    return lValue << iShiftBits | lValue >>> 32 - iShiftBits;
+  }
+  function AddUnsigned(lX, lY) {
+    var lX4, lY4, lX8, lY8, lResult;
+    lX8 = lX & 2147483648;
+    lY8 = lY & 2147483648;
+    lX4 = lX & 1073741824;
+    lY4 = lY & 1073741824;
+    lResult = (lX & 1073741823) + (lY & 1073741823);
+    if (lX4 & lY4) return lResult ^ 2147483648 ^ lX8 ^ lY8;
+    if (lX4 | lY4) {
+      if (lResult & 1073741824) return lResult ^ 3221225472 ^ lX8 ^ lY8;
+      else return lResult ^ 1073741824 ^ lX8 ^ lY8;
+    } else return lResult ^ lX8 ^ lY8;
+  }
+  function F(x, y, z) {
+    return x & y | ~x & z;
+  }
+  function G(x, y, z) {
+    return x & z | y & ~z;
+  }
+  function H(x, y, z) {
+    return x ^ y ^ z;
+  }
+  function I(x, y, z) {
+    return y ^ (x | ~z);
+  }
+  function FF(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function GG(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function HH(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function II(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function ConvertToWordArray(string) {
+    var lWordCount;
+    var lMessageLength = string.length;
+    var lNumberOfWords_temp1 = lMessageLength + 8;
+    var lNumberOfWords_temp2 =
+      (lNumberOfWords_temp1 - lNumberOfWords_temp1 % 64) / 64;
+    var lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
+    var lWordArray = Array(lNumberOfWords - 1);
+    var lBytePosition = 0;
+    var lByteCount = 0;
+    while (lByteCount < lMessageLength) {
+      lWordCount = (lByteCount - lByteCount % 4) / 4;
+      lBytePosition = lByteCount % 4 * 8;
+      lWordArray[lWordCount] = lWordArray[lWordCount] |
+        string.charCodeAt(lByteCount) << lBytePosition;
+      lByteCount++;
+    }
+    lWordCount = (lByteCount - lByteCount % 4) / 4;
+    lBytePosition = lByteCount % 4 * 8;
+    lWordArray[lWordCount] = lWordArray[lWordCount] | 128 << lBytePosition;
+    lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
+    lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
+    return lWordArray;
+  }
+  function WordToHex(lValue) {
+    var WordToHexValue = "", WordToHexValue_temp = "", lByte, lCount;
+    for (lCount = 0; lCount <= 3; lCount++) {
+      lByte = lValue >>> lCount * 8 & 255;
+      WordToHexValue_temp = "0" + lByte.toString(16);
+      WordToHexValue = WordToHexValue +
+        WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
+    }
+    return WordToHexValue;
+  }
+  function Utf8Encode(string) {
+    string = string.replace(/\r\n/g, "\n");
+    var utftext = "";
+    for (var n = 0; n < string.length; n++) {
+      var c = string.charCodeAt(n);
+      if (c < 128) utftext += String.fromCharCode(c);
+      else if (c > 127 && c < 2048) {
+        utftext += String.fromCharCode(c >> 6 | 192);
+        utftext += String.fromCharCode(c & 63 | 128);
+      } else {
+        utftext += String.fromCharCode(c >> 12 | 224);
+        utftext += String.fromCharCode(c >> 6 & 63 | 128);
+        utftext += String.fromCharCode(c & 63 | 128);
+      }
+    }
+    return utftext;
+  }
+  var x = Array();
+  var k, AA, BB, CC, DD, a, b, c, d;
+  var S11 = 7, S12 = 12, S13 = 17, S14 = 22;
+  var S21 = 5, S22 = 9, S23 = 14, S24 = 20;
+  var S31 = 4, S32 = 11, S33 = 16, S34 = 23;
+  var S41 = 6, S42 = 10, S43 = 15, S44 = 21;
+  string = Utf8Encode(string);
+  x = ConvertToWordArray(string);
+  a = 1732584193;
+  b = 4023233417;
+  c = 2562383102;
+  d = 271733878;
+  for (k = 0; k < x.length; k += 16) {
+    AA = a;
+    BB = b;
+    CC = c;
+    DD = d;
+    a = FF(a, b, c, d, x[k + 0], S11, 3614090360);
+    d = FF(d, a, b, c, x[k + 1], S12, 3905402710);
+    c = FF(c, d, a, b, x[k + 2], S13, 606105819);
+    b = FF(b, c, d, a, x[k + 3], S14, 3250441966);
+    a = FF(a, b, c, d, x[k + 4], S11, 4118548399);
+    d = FF(d, a, b, c, x[k + 5], S12, 1200080426);
+    c = FF(c, d, a, b, x[k + 6], S13, 2821735955);
+    b = FF(b, c, d, a, x[k + 7], S14, 4249261313);
+    a = FF(a, b, c, d, x[k + 8], S11, 1770035416);
+    d = FF(d, a, b, c, x[k + 9], S12, 2336552879);
+    c = FF(c, d, a, b, x[k + 10], S13, 4294925233);
+    b = FF(b, c, d, a, x[k + 11], S14, 2304563134);
+    a = FF(a, b, c, d, x[k + 12], S11, 1804603682);
+    d = FF(d, a, b, c, x[k + 13], S12, 4254626195);
+    c = FF(c, d, a, b, x[k + 14], S13, 2792965006);
+    b = FF(b, c, d, a, x[k + 15], S14, 1236535329);
+    a = GG(a, b, c, d, x[k + 1], S21, 4129170786);
+    d = GG(d, a, b, c, x[k + 6], S22, 3225465664);
+    c = GG(c, d, a, b, x[k + 11], S23, 643717713);
+    b = GG(b, c, d, a, x[k + 0], S24, 3921069994);
+    a = GG(a, b, c, d, x[k + 5], S21, 3593408605);
+    d = GG(d, a, b, c, x[k + 10], S22, 38016083);
+    c = GG(c, d, a, b, x[k + 15], S23, 3634488961);
+    b = GG(b, c, d, a, x[k + 4], S24, 3889429448);
+    a = GG(a, b, c, d, x[k + 9], S21, 568446438);
+    d = GG(d, a, b, c, x[k + 14], S22, 3275163606);
+    c = GG(c, d, a, b, x[k + 3], S23, 4107603335);
+    b = GG(b, c, d, a, x[k + 8], S24, 1163531501);
+    a = GG(a, b, c, d, x[k + 13], S21, 2850285829);
+    d = GG(d, a, b, c, x[k + 2], S22, 4243563512);
+    c = GG(c, d, a, b, x[k + 7], S23, 1735328473);
+    b = GG(b, c, d, a, x[k + 12], S24, 2368359562);
+    a = HH(a, b, c, d, x[k + 5], S31, 4294588738);
+    d = HH(d, a, b, c, x[k + 8], S32, 2272392833);
+    c = HH(c, d, a, b, x[k + 11], S33, 1839030562);
+    b = HH(b, c, d, a, x[k + 14], S34, 4259657740);
+    a = HH(a, b, c, d, x[k + 1], S31, 2763975236);
+    d = HH(d, a, b, c, x[k + 4], S32, 1272893353);
+    c = HH(c, d, a, b, x[k + 7], S33, 4139469664);
+    b = HH(b, c, d, a, x[k + 10], S34, 3200236656);
+    a = HH(a, b, c, d, x[k + 13], S31, 681279174);
+    d = HH(d, a, b, c, x[k + 0], S32, 3936430074);
+    c = HH(c, d, a, b, x[k + 3], S33, 3572445317);
+    b = HH(b, c, d, a, x[k + 6], S34, 76029189);
+    a = HH(a, b, c, d, x[k + 9], S31, 3654602809);
+    d = HH(d, a, b, c, x[k + 12], S32, 3873151461);
+    c = HH(c, d, a, b, x[k + 15], S33, 530742520);
+    b = HH(b, c, d, a, x[k + 2], S34, 3299628645);
+    a = II(a, b, c, d, x[k + 0], S41, 4096336452);
+    d = II(d, a, b, c, x[k + 7], S42, 1126891415);
+    c = II(c, d, a, b, x[k + 14], S43, 2878612391);
+    b = II(b, c, d, a, x[k + 5], S44, 4237533241);
+    a = II(a, b, c, d, x[k + 12], S41, 1700485571);
+    d = II(d, a, b, c, x[k + 3], S42, 2399980690);
+    c = II(c, d, a, b, x[k + 10], S43, 4293915773);
+    b = II(b, c, d, a, x[k + 1], S44, 2240044497);
+    a = II(a, b, c, d, x[k + 8], S41, 1873313359);
+    d = II(d, a, b, c, x[k + 15], S42, 4264355552);
+    c = II(c, d, a, b, x[k + 6], S43, 2734768916);
+    b = II(b, c, d, a, x[k + 13], S44, 1309151649);
+    a = II(a, b, c, d, x[k + 4], S41, 4149444226);
+    d = II(d, a, b, c, x[k + 11], S42, 3174756917);
+    c = II(c, d, a, b, x[k + 2], S43, 718787259);
+    b = II(b, c, d, a, x[k + 9], S44, 3951481745);
+    a = AddUnsigned(a, AA);
+    b = AddUnsigned(b, BB);
+    c = AddUnsigned(c, CC);
+    d = AddUnsigned(d, DD);
+  }
+  var temp = WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
+  return temp.toLowerCase();
+}
+/******************************************** MD5************************************************/
