@@ -768,7 +768,7 @@ h3 {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgb(255, 255, 255);
+  background: rgb(4, 35, 78);
   display: none;
   justify-content: center;
   align-items: center;
@@ -782,8 +782,8 @@ h3 {
 }
 
 .loader {
-  --path: #2f3545;
-  --dot: #0366d6;
+  --path: #e84d31;
+  --dot: #ffffff;
   --duration: 3s;
   width: 44px;
   height: 44px;
