@@ -88,11 +88,22 @@ async function getRepoData() {
 async function getBranchCommits(branchName) {
   const git = simpleGit();
   try {
-    let baseBranch = "main";
-    try {
-      await git.show(["main"]);
-    } catch {
-      baseBranch = "master";
+    
+    const { current: currentBranch } = await git.branch();
+    let baseBranch = currentBranch;
+
+    if (currentBranch !== 'main' && currentBranch !== 'master') {
+      try {
+        await git.show(["main"]);
+        baseBranch = "main";
+      } catch {
+        try {
+          await git.show(["master"]);
+          baseBranch = "master";
+        } catch {
+          baseBranch = currentBranch;
+        }
+      }
     }
 
     let targetBranch = branchName;
@@ -101,6 +112,11 @@ async function getBranchCommits(branchName) {
         return [];
       }
       targetBranch = branchName.replace("remotes/", "refs/remotes/");
+    }
+
+    if (targetBranch === baseBranch) {
+      const log = await git.log(["--first-parent", targetBranch]);
+      return log.all;
     }
 
     const revList = await git.raw([

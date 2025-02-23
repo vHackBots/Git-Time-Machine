@@ -344,10 +344,11 @@ async function handleCompare() {
   }
 }
 
-function getFileStatus(diff) {
-  if (diff.includes("new file mode")) return "A";
-  if (diff.includes("deleted file mode")) return "D";
-  if (diff.includes("rename from")) return "R";
+function getFileStatus(content) {
+  if (content.match(/^new file mode/m)) return "A";
+  if (content.match(/^deleted file mode/m)) return "D";
+  if (content.match(/^rename (from|to)/m)) return "R";
+  if (content.match(/^index [0-9a-f]+\.\.[0-9a-f]+/m)) return "M";
   return "M";
 }
 
@@ -445,6 +446,7 @@ function parseDiffToFiles(diff) {
   const files = [];
   let currentFile = null;
   let content = [];
+  let fileHeader = [];
 
   const lines = diff.split("\n");
 
@@ -453,10 +455,11 @@ function parseDiffToFiles(diff) {
 
     if (line.startsWith("diff --git")) {
       if (currentFile) {
-        currentFile.content = content.join("\n");
+        currentFile.content = fileHeader.join("\n") + "\n" + content.join("\n");
         files.push(currentFile);
       }
 
+      fileHeader = [line];  // Start new file headers
       const [_, pathA, pathB] = line.match(/diff --git a\/(.*) b\/(.*)/);
       currentFile = {
         name: pathB,
@@ -468,37 +471,24 @@ function parseDiffToFiles(diff) {
       };
       content = [];
 
+      // Collect all header information
       let j = i + 1;
-      while (j < lines.length && !lines[j].startsWith("diff --git")) {
-        if (lines[j].match(/^index [0-9a-f]+\.\.[0-9a-f]+/)) {
-          break;
-        }
-        if (
-          lines[j].includes("Binary files") ||
-          lines[j].includes("GIT binary patch")
-        ) {
-          currentFile.isBinary = true;
-          const ext = pathB.split(".").pop().toLowerCase();
-          currentFile.fileType = ext;
-          break;
-        }
+      while (j < lines.length && 
+             (lines[j].startsWith("new file") || 
+              lines[j].startsWith("deleted file") ||
+              lines[j].startsWith("old mode") ||
+              lines[j].startsWith("new mode") ||
+              lines[j].startsWith("rename from") ||
+              lines[j].startsWith("rename to") ||
+              lines[j].startsWith("index"))) {
+        fileHeader.push(lines[j]);
         j++;
       }
+      i = j - 1;
+      continue;
+    }
 
-      if (!currentFile.isBinary) {
-        while (
-          j < lines.length &&
-          (lines[j].startsWith("index") ||
-            lines[j].startsWith("old mode") ||
-            lines[j].startsWith("new mode"))
-        ) {
-          j++;
-        }
-        i = j - 1;
-      } else {
-        i = j;
-      }
-    } else if (currentFile && !currentFile.isBinary) {
+    if (currentFile && !currentFile.isBinary) {
       content.push(line);
       if (line.startsWith("+") && !line.startsWith("+++")) {
         currentFile.additions++;
@@ -510,7 +500,7 @@ function parseDiffToFiles(diff) {
   }
 
   if (currentFile) {
-    currentFile.content = content.join("\n");
+    currentFile.content = fileHeader.join("\n") + "\n" + content.join("\n");
     files.push(currentFile);
   }
 
