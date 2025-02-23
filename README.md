@@ -1,34 +1,80 @@
-# Git Time Machine
+<div align="center">
+  <img src="https://raw.githubusercontent.com/vHackBots/Git-Time-Machine/refs/heads/main/src/public/images/logo.svg" width="100" height="100">
 
-**A powerful tool to visualize, analyze, and manage the evolution of your GitHub repositories.**
+  <h1>Git Time Machine</h1>
+
+  <br/>
+</div>
+
+An elegant visual Git history explorer with real-time commit comparison capabilities.
 
 Built for [FOSS Hack 2025](https://fossunited.org/fosshack/2025), Git Time Machine empowers developers to travel through their codebase history, debug with ease, and collaborate seamlessly. Whether you're auditing changes, resolving conflicts, or understanding project growth, this tool has you covered—all while staying true to the spirit of free and open-source software.
 
 ---
-
 ## Features
 
 ### Core Functionality
 
-- **Commit Comparison**: Compare code changes between any two commits—line-by-line, file-by-file, or across branches. Filter by files, contributors, or time ranges for focused analysis.
-- **Codebase Evolution Visualization**: See how your repository has grown over time with an interactive timeline of commits, tags, releases, and lines added/removed.
-- **Conflict Prediction**: Automatically detect potential merge conflicts and highlight risky code segments before they cause trouble.
-- **Branch Tracking**: Visualize branch relationships and track changes across multiple development paths for smoother merges.
-- **Rollback Previews**: Preview historical commits and create new branches from any point in the past without disrupting the main codebase.
-- **Merge Protection**: Blocks pull request merges if conflicts are detected, keeping your codebase stable.
-- **Code Health Reports**: Generate detailed insights into project stability, contributor activity, and trends over time.
+- **Interactive Branch Navigation**: 
+  - Visual branch list with color coding
+  - Support for both local and remote branches
+  - Easy branch switching and tracking
 
-### Bonus Features (Hackathon Highlights)
+- **Rich Commit History**: 
+  - Beautiful commit timeline visualization
+  - Emoji support for conventional commit messages
+  - Author avatars with GitHub profile integration
+  - Detailed commit metadata (author, date, hash)
 
-- **Interactive Time Travel**: Step through your repo’s history like a video, with play/pause controls for an immersive experience.
-- **Contributor Heatmap**: See who’s been working on what, identifying key contributors and collaboration patterns.
-- **Searchable History**: Quickly find commits by keyword, author, or file name.
+- **Advanced Diff Viewer**:
+  - Side-by-side commit comparison
+  - Syntax-highlighted code diffs
+  - File status indicators (Added, Modified, Deleted)
+  - Collapsible diff sections by file
+  - Line number tracking for both versions
+  - Binary file detection
 
----
+- **User Interface**:
+  - Modern glass-morphism design
+  - Responsive layout for all screen sizes
+  - Smooth animations and transitions
+  - Toast notifications for user feedback
+  - Collapsible comparison panel
 
-## Why Git Time Machine?
+### Technical Features
 
-- **Debugging Made Easy**: Pinpoint when and where bugs were introduced by exploring historical changes.
-- **Audit with Confidence**: Track every change for compliance or project reviews.
-- **Team Sync**: Ensure everyone’s on the same page with clear visualizations and conflict warnings.
-- **FOSS-Friendly**: Built open-source from the ground up, ready for the community to use and extend.
+- **Git Integration**:
+  - Full Git repository support
+  - Remote repository synchronization
+  - Branch checkout capabilities
+  - Comprehensive commit history
+
+- **Performance**:
+  - Lazy loading of commit data
+  - Efficient diff parsing and rendering
+  - Optimized avatar loading with fallbacks
+  - Minimal memory footprint
+
+### Installation
+
+<!-- to be done -->
+
+## Usage
+
+1. **Open a Project**: 
+   - Clone a Git repository or open an existing project directory
+   - Ensure that the project has a valid Git history
+
+2. **Run the cli command**:
+   - Run the following command in the terminal:
+     ```bash
+     git-tm .
+     ```
+    - This will start the Git Time Machine server and open the web interface in your default browser
+
+3. **Explore the History**: 
+   - Navigate through the commit history using the timeline
+   - Compare commits by selecting two different versions
+   - View detailed commit metadata and file changes
+   - Switch branches and track changes in real-time
+   - Enjoy the seamless Git experience!
