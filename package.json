@@ -1,7 +1,7 @@
 {
   "name": "git-time-machine",
   "version": "0.1.0",
-  "description": "A powerful tool to visualize and analyze Git repository history",
+  "description": "An elegant visual Git history explorer with real-time commit comparison capabilities",
   "main": "src/cli.js",
   "bin": {
     "git-tm": "./src/cli.js"
