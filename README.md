@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/vHackBots/Git-Time-Machine/refs/heads/main/src/public/images/logo.svg" width="100" height="100">
+  <img src="./src/public/images/logo.svg" width="100" height="100">
 
   <h1>Git Time Machine</h1>
 

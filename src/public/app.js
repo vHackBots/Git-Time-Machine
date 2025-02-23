@@ -276,8 +276,7 @@ async function renderCommits(commits) {
         commit.author_email,
         commit.author_name
       );
-      const message = convertGitEmoji(commit.message); // Convert emoji shortcodes to actual emojis
-
+      const message = convertGitEmoji(commit.message);
       return `
       <div class="commit" data-hash="${commit.hash}">
         <div class="commit-hash">${commit.hash.slice(0, 7)}</div>
@@ -513,7 +512,7 @@ function parseDiffToFiles(diff) {
         files.push(currentFile);
       }
 
-      fileHeader = [line]; // Start new file headers
+      fileHeader = [line];
       const [_, pathA, pathB] = line.match(/diff --git a\/(.*) b\/(.*)/);
       currentFile = {
         name: pathB,
@@ -525,7 +524,6 @@ function parseDiffToFiles(diff) {
       };
       content = [];
 
-      // Collect all header information
       let j = i + 1;
       while (
         j < lines.length &&
