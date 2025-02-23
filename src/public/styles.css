@@ -1081,7 +1081,7 @@ h3 {
   justify-content: space-around;
   gap: 15px;
   opacity: 0;
-  transform: translateY(-20px); 
+  transform: translateY(-20px);
   transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   margin-bottom: 10px;
 }
@@ -1226,4 +1226,34 @@ h3 {
 
 .github-link:hover {
   text-decoration: underline;
+}
+
+.app-logo {
+  width: 50px;
+  height: 50px;
+  /* object-fit: contain; */
+  display: inline-block;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-direction: row;
+}
+
+.title-container h1 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
 }
