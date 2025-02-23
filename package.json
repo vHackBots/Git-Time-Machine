@@ -1,10 +1,10 @@
 {
   "name": "git-tm",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "An elegant visual Git history explorer with real-time commit comparison capabilities",
   "main": "src/cli.js",
   "bin": {
-    "git-tm": "./src/cli.js"
+    "git-tm": "src/cli.js"
   },
   "scripts": {
     "start": "node src/cli.js"
@@ -21,5 +21,26 @@
     "open": "^10.0.3",
     "ora": "^7.0.1",
     "simple-git": "^3.22.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vHackBots/Git-Time-Machine.git"
+  },
+  "keywords": [
+    "git-tm",
+    "git-time-machine",
+    "git",
+    "time",
+    "commits",
+    "commit-history",
+    "source-control",
+    "github"
+  ],
+  "author": "nandhu-44",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vHackBots/Git-Time-Machine/issues"
+  },
+  "homepage": "https://github.com/vHackBots/Git-Time-Machine#readme"
 }
