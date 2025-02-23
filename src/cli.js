@@ -62,10 +62,8 @@ function createSpinner(text) {
 }
 
 async function showErrorAndHelp(errorMessage, exitCode = 1) {
-  await displayBanner();
   console.log(chalk.yellow(`⚠️  Error: ${errorMessage}\n`));
   console.log(await getHelpText() + "\n");
-  console.log(chalk.red("Exiting...\n"));
   process.exit(exitCode);
 }
 
@@ -86,7 +84,7 @@ async function validateGitRepo(repoPath) {
   if (!fs.existsSync(gitPath)) {
     spinner.fail(chalk.red("Repository validation failed"));
     await showErrorAndHelp(
-      `Not a git repository: ${chalk.blue(
+      `Not a git repository: ${chalk.white(
         fullPath
       )}\nMake sure the directory contains a .git folder`
     );
@@ -98,7 +96,7 @@ async function validateGitRepo(repoPath) {
 
 async function getHelpText() {
   return [
-    await displayBanner(),
+
     chalk.bold("Usage:"),
     `  $ ${chalk.hex(GIT_ORANGE)("git-tm")} ${chalk.cyan(
       "<repository-path>"
@@ -127,7 +125,7 @@ async function getHelpText() {
     )}`,
     "",
     chalk.bold("More Info:"),
-    `  ${chalk.blue("https://github.com/vHackBots/Git-Time-Machine")}`,
+    `  ${chalk.yellow("https://github.com/vHackBots/Git-Time-Machine")}`,
   ].join("\n");
 }
 
