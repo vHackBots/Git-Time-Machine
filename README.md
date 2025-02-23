@@ -12,6 +12,10 @@ Built for [FOSS Hack 2025](https://fossunited.org/fosshack/2025), Git Time Machi
 
 ---
 
+## Demo Video
+
+[Git Time Machine Demo](demo/git-tm-demo.mp4)
+
 ## Features
 
 ### Core Functionality
